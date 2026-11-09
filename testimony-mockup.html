@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Testimony Site – Crude Mockup</title>
+<style>
+:root{--bg:#0f0d0b;--panel:#1a1613;--panel2:#221d19;--ink:#e9e1d3;--mute:#9a8f7e;--gold:#d9a441;--line:#3a322a;--red:#b5513b}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#2a2018,var(--bg));color:var(--ink);font-family:Georgia,'Times New Roman',serif;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--line)}
+.brand{letter-spacing:.2em;text-transform:uppercase;font-size:13px;color:var(--gold)}
+.brand small{display:block;letter-spacing:.05em;text-transform:none;color:var(--mute);font-size:12px;margin-top:2px}
+nav button{background:none;border:0;color:var(--mute);font:inherit;font-size:14px;margin-left:18px;cursor:pointer;padding:6px 2px;border-bottom:1px solid transparent}
+nav button.on,nav button:hover{color:var(--ink);border-color:var(--gold)}
+.tag{font:11px system-ui;color:#000;background:var(--gold);padding:2px 8px;border-radius:10px;margin-left:12px}
+main{max-width:1280px;margin:0 auto;padding:20px 24px}
+.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:20px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.video{aspect-ratio:16/9;background:linear-gradient(135deg,#2b241d,#14110e);position:relative;display:flex;align-items:center;justify-content:center}
+.video .face{width:120px;height:120px;border-radius:50%;background:#3a3027;display:flex;align-items:center;justify-content:center;font-size:48px;color:#6b5e4d}
+.video .badge{position:absolute;top:10px;left:12px;font:11px system-ui;color:var(--mute)}
+.video .sub{position:absolute;bottom:14px;left:5%;right:5%;text-align:center;font-size:17px;line-height:1.35;text-shadow:0 1px 3px #000;background:rgba(0,0,0,.45);padding:6px 10px;border-radius:4px}
+.ctrl{display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid var(--line);font:13px system-ui;color:var(--mute)}
+.ctrl button{background:var(--gold);color:#000;border:0;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:14px}
+.ctrl .lang{margin-left:auto;display:flex;gap:6px}
+.ctrl .lang span{padding:2px 8px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.ctrl .lang span.on{border-color:var(--gold);color:var(--gold)}
+.timeline{position:relative;height:46px;margin:14px 0 4px;background:var(--panel);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+.timeline .prog{position:absolute;left:0;top:0;bottom:0;background:rgba(217,164,65,.18);border-right:2px solid var(--gold)}
+.timeline .mk{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:15px;filter:drop-shadow(0 1px 2px #000)}
+.tapes{display:flex;gap:6px;font:11px system-ui;color:var(--mute);margin-bottom:12px}
+.tapes span{padding:2px 8px;border:1px solid var(--line);border-radius:10px}
+.tapes span.on{color:var(--gold);border-color:var(--gold)}
+.tr{max-height:230px;overflow:auto;padding:6px 0}
+.tr div{padding:7px 14px;font-size:14.5px;line-height:1.4;cursor:pointer;color:var(--mute);border-left:2px solid transparent}
+.tr div b{font:11px system-ui;color:var(--gold);margin-right:8px;font-weight:400}
+.tr div.act{color:var(--ink);border-left-color:var(--gold);background:var(--panel2)}
+.stage h3{margin:0;padding:12px 16px;font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--line);font-weight:400;display:flex;justify-content:space-between}
+.stage h3 i{font:11px system-ui;color:var(--mute);text-transform:none;letter-spacing:0;font-style:normal}
+.map{position:relative;height:250px;background:#16130f}
+.map svg{width:100%;height:100%;display:block}
+.pin{cursor:pointer}
+.pin circle.pulse{animation:pl 1.8s infinite}
+@keyframes pl{0%{r:6;opacity:.8}100%{r:20;opacity:0}}
+.chips{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:150px}
+.chip{display:flex;gap:12px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px;cursor:pointer;animation:fi .5s}
+.chip:hover{border-color:var(--gold)}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.thumb{width:54px;height:54px;border-radius:4px;background:#3a3027;display:flex;align-items:center;justify-content:center;font-size:26px;flex:none}
+.chip .t{font-size:15px}.chip .s{font:12px system-ui;color:var(--mute);margin-top:3px}
+.empty{color:var(--mute);font:13px system-ui;text-align:center;padding:30px}
+.links a{color:var(--gold);font:12px system-ui;margin-right:10px}
+/* explore */
+.tabs{display:flex;gap:6px;margin:6px 0 14px}
+.tabs button{background:var(--panel);border:1px solid var(--line);color:var(--mute);padding:7px 16px;border-radius:18px;font:13px system-ui;cursor:pointer}
+.tabs button.on{border-color:var(--gold);color:var(--gold)}
+.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;cursor:pointer}
+.item:hover{border-color:var(--gold)}
+.item .thumb{width:100%;height:110px;margin-bottom:10px;font-size:40px}
+.item .m{font:12px system-ui;color:var(--mute);margin-top:4px}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:9;padding:20px}
+.ov.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--gold);border-radius:8px;max-width:880px;width:100%;max-height:90vh;overflow:auto;display:grid;grid-template-columns:1.2fr 1fr}
+@media(max-width:760px){.modal{grid-template-columns:1fr}}
+.modal .view{background:#0b0908;display:flex;align-items:center;justify-content:center;min-height:340px;overflow:auto;padding:14px}
+.modal .info{padding:20px}
+.modal h2{margin:0 0 4px;font-weight:400}
+.modal .k{font:11px system-ui;color:var(--gold);letter-spacing:.15em;text-transform:uppercase}
+.modal p{font-size:14.5px;line-height:1.5;color:#cfc6b6}
+.x{position:absolute;top:18px;right:26px;background:none;border:0;color:var(--ink);font-size:28px;cursor:pointer}
+.quote{border-left:2px solid var(--gold);padding-left:12px;color:var(--ink);font-style:italic}
+.btn{display:inline-block;background:none;border:1px solid var(--gold);color:var(--gold);padding:6px 12px;border-radius:4px;font:12px system-ui;margin:4px 6px 0 0;cursor:pointer;text-decoration:none}
+.paper{background:#e8dcc0;color:#2b2418;padding:22px;width:300px;font:13px/1.5 'Courier New',monospace;box-shadow:0 4px 20px #000;transform-origin:top left}
+.paper h4{margin:0 0 8px;text-align:center;letter-spacing:.1em}
+.paper hr{border:0;border-top:1px dashed #8a7b5a}
+.ph{width:260px;height:320px;background:linear-gradient(160deg,#6d5e4b,#2d261e);border:8px solid #e9e1d3;display:flex;align-items:center;justify-content:center;font-size:90px;box-shadow:0 4px 20px #000}
+.zoom{font:12px system-ui;color:var(--mute);margin-top:10px}
+.note{font:12px system-ui;color:var(--mute);text-align:center;margin:26px 0 10px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">In His Own Words<small>The testimony of [Name] · 4 tapes · sample content <span class="tag">MOCKUP</span></small></div>
+  <nav>
+    <button class="on" data-v="watch">Watch</button>
+    <button data-v="explore">Explore</button>
+    <button data-v="about">About</button>
+  </nav>
+</header>
+
+<main>
+<!-- WATCH -->
+<section id="watch">
+  <div class="tapes" id="tapes"><span class="on">Tape 1</span><span>Tape 2</span><span>Tape 3</span><span>Tape 4</span></div>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="video"><span class="badge">▶ stock video placeholder (YouTube embed goes here)</span><div class="face">☺</div><div class="sub" id="sub"></div></div>
+        <div class="ctrl">
+          <button id="play">▶</button><span id="clock">0:00 / 2:00</span>
+          <span style="color:var(--mute)">demo speed ×4</span>
+          <div class="lang"><span class="on" id="en">English</span><span id="nl">Nederlands</span></div>
+        </div>
+      </div>
+      <div class="timeline" id="tl"><div class="prog" id="prog"></div></div>
+      <div style="font:11px system-ui;color:var(--mute)">📍 place · 👤 person · 📄 document · 🖼 photo — click the bar to jump</div>
+      <div class="card" style="margin-top:12px"><div class="tr" id="tr"></div></div>
+    </div>
+
+    <div class="card stage">
+      <h3>Context <i id="when">listening…</i></h3>
+      <div class="map">
+        <svg viewBox="0 0 400 250" id="svg">
+          <defs><pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#241f19" stroke-width="1"/></pattern></defs>
+          <rect width="400" height="250" fill="url(#g)"/>
+          <path d="M40 150 C70 90 110 60 160 70 C200 50 250 70 270 110 C300 130 330 120 360 160 C340 200 290 215 240 205 C200 225 140 215 100 200 C70 195 50 175 40 150Z" fill="#221d17" stroke="#3a322a"/>
+          <path id="route" d="M110 100 L170 120 L250 95 L330 175" fill="none" stroke="#d9a441" stroke-width="2" stroke-dasharray="4 5" opacity=".7"/>
+          <g id="pins"></g>
+          <text x="10" y="242" fill="#5d5444" font-size="9" font-family="system-ui">map placeholder — real version: Leaflet/Mapbox with historical overlay</text>
+        </svg>
+      </div>
+      <div class="chips" id="chips"><div class="empty">Press play. Places, people and documents appear here as they are mentioned.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPLORE -->
+<section id="explore" class="hide">
+  <div class="tabs" id="etabs">
+    <button class="on" data-t="places">Places</button><button data-t="people">People</button><button data-t="docs">Documents</button><button data-t="photos">Photos</button>
+  </div>
+  <div class="cols" id="ecols"></div>
+  <div class="note">Every card opens the same popup, shows every moment it is mentioned, and links out to Wikipedia / archives.</div>
+</section>
+
+<section id="about" class="hide">
+  <div class="card" style="padding:28px;max-width:720px;margin:20px auto;line-height:1.6">
+    <div class="k" style="font:11px system-ui;color:var(--gold);letter-spacing:.15em">ABOUT</div>
+    <h2 style="font-weight:400">A note before you watch</h2>
+    <p>Sample page. This is where the family's introduction goes, a content note, a family tree, a glossary of terms, and a candle you can light.</p>
+    <button class="btn">🕯 Light a candle</button><button class="btn">Family tree</button><button class="btn">Glossary</button>
+  </div>
+</section>
+</main>
+
+<!-- MODAL -->
+<div class="ov" id="ov"><button class="x" onclick="closeM()">×</button><div class="modal" id="modal"></div></div>
+
+<script>
+// ---------- SAMPLE DATA (all fictional placeholders) ----------
+const PLACES={
+  ams:{name:'Amsterdam',x:110,y:100,ico:'🏙',wiki:'https://en.wikipedia.org/wiki/Amsterdam',desc:'Sample: where the narrator grew up.'},
+  utr:{name:'Utrecht',x:170,y:120,ico:'🏘',wiki:'https://en.wikipedia.org/wiki/Utrecht',desc:'Sample: the family hid here.'},
+  wst:{name:'Westerbork',x:250,y:95,ico:'⛓',wiki:'https://en.wikipedia.org/wiki/Kamp_Westerbork',desc:'Sample: transit camp.'},
+  hai:{name:'Haifa',x:330,y:175,ico:'⚓',wiki:'https://en.wikipedia.org/wiki/Haifa',desc:'Sample: arrival after the war.'}
+};
+const PEOPLE={
+  father:{name:'Father',ico:'👨',rel:'Father',wiki:null,desc:'Sample: a tailor. Photo, dates, and where he appears in the tapes.'},
+  aunt:{name:'Aunt Rosa',ico:'👩',rel:'Aunt',wiki:null,desc:'Sample: recipient of the 1942 letter.'}
+};
+const DOCS={
+  census:{name:'1941 Population Census Card',ico:'🗂',type:'doc',kind:'Census',src:'https://www.arolsen-archives.org/',srcName:'Arolsen Archives',desc:'Sample: scanned census registration. In the real site: zoomable scan, transcription, and English translation.',
+    html:'<div class="paper"><h4>PERSONENKAART</h4><hr>Naam: ____________<br>Geboren: ____ 19__<br>Adres: Sample Straat 12<br>Godsdienst: —<br><hr>Gezinsleden: 4<br><br><i>[ scan placeholder ]</i></div>'},
+  letter:{name:'Letter to Aunt Rosa, 1942',ico:'✉',type:'doc',kind:'Letter',src:'https://collections.ushmm.org/',srcName:'USHMM Collections',desc:'Sample: handwritten letter, with transcription and translation toggle.',
+    html:'<div class="paper"><h4>Utrecht, 3 maart 1942</h4><hr>Lieve tante Rosa,<br><br>Wij maken het goed. Vader werkt nog...<br><br>Veel liefs,<br>[Name]<br><hr><i>[ handwriting scan placeholder ]</i></div>'}
+};
+const PHOTOS={
+  family:{name:'Family portrait, c. 1935',ico:'🖼',type:'photo',kind:'Photo',desc:'Sample: family photograph. Caption, date, who is in it, who donated it.',people:['father']},
+  street:{name:'Street in Amsterdam, c. 1938',ico:'🏙',type:'photo',kind:'Photo',desc:'Sample: archival street photo.',people:[]}
+};
+// cues: t=seconds, text(en), nl, items
+const CUES=[
+ {t:0, en:'I was born in a small house in the old part of the city.',nl:'Ik werd geboren in een klein huis in de oude stad.',items:[['place','ams'],['photo','street']]},
+ {t:20,en:'My father was a tailor. He worked from morning until night.',nl:'Mijn vader was kleermaker. Hij werkte van ’s ochtends tot ’s avonds.',items:[['person','father'],['photo','family']]},
+ {t:40,en:'Then came the order that every family had to register.',nl:'Toen kwam het bevel dat elk gezin zich moest laten registreren.',items:[['doc','census']]},
+ {t:60,en:'We moved to Utrecht, where we stayed with friends.',nl:'Wij verhuisden naar Utrecht, waar we bij vrienden logeerden.',items:[['place','utr']]},
+ {t:80,en:'I wrote to my aunt, not knowing if the letter would arrive.',nl:'Ik schreef aan mijn tante, zonder te weten of de brief zou aankomen.',items:[['person','aunt'],['doc','letter']]},
+ {t:100,en:'Later we were taken to Westerbork. After the war I sailed to Haifa.',nl:'Later werden we naar Westerbork gebracht. Na de oorlog voer ik naar Haifa.',items:[['place','wst'],['place','hai']]}
+];
+const DUR=120, SPEED=4;
+const ICON={place:'📍',person:'👤',doc:'📄',photo:'🖼'};
+const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+const lookup=(k,id)=>k==='place'?PLACES[id]:k==='person'?PEOPLE[id]:k==='doc'?DOCS[id]:PHOTOS[id];
+
+// ---------- build timeline markers + transcript + pins ----------
+const tl=document.getElementById('tl');
+CUES.forEach(c=>c.items.forEach((it,i)=>{
+  const m=document.createElement('span');m.className='mk';m.textContent=ICON[it[0]];
+  m.style.left=((c.t+i*3)/DUR*100)+'%';tl.appendChild(m);
+}));
+const tr=document.getElementById('tr');
+CUES.forEach((c,i)=>{const d=document.createElement('div');d.id='c'+i;d.innerHTML='<b>'+fmt(c.t)+'</b><span class="tx">'+c.en+'</span>';d.onclick=()=>seek(c.t+.5);tr.appendChild(d)});
+const pins=document.getElementById('pins');
+Object.entries(PLACES).forEach(([id,p])=>{
+  pins.insertAdjacentHTML('beforeend',`<g class="pin" id="pin-${id}" opacity=".25" onclick="openM('place','${id}')"><circle class="pulse" cx="${p.x}" cy="${p.y}" r="6" fill="#d9a441" opacity="0"/><circle cx="${p.x}" cy="${p.y}" r="6" fill="#d9a441" stroke="#000"/><text x="${p.x+10}" y="${p.y+4}" fill="#e9e1d3" font-size="11" font-family="system-ui">${p.name}</text></g>`);
+});
+
+// ---------- playback ----------
+let t=0,playing=false,lang='en',seen=new Set(),last=-1;
+const sub=document.getElementById('sub');
+function render(){
+  document.getElementById('clock').textContent=fmt(t)+' / '+fmt(DUR);
+  document.getElementById('prog').style.width=(t/DUR*100)+'%';
+  let idx=-1;CUES.forEach((c,i)=>{if(t>=c.t)idx=i});
+  if(idx!==last){
+    last=idx;
+    CUES.forEach((_,i)=>document.getElementById('c'+i).classList.toggle('act',i===idx));
+    if(idx>=0){
+      sub.textContent=CUES[idx][lang];
+      document.getElementById('when').textContent=fmt(CUES[idx].t);
+      CUES[idx].items.forEach(([k,id])=>{ if(k==='place')seen.add(id) });
+      Object.keys(PLACES).forEach(id=>document.getElementById('pin-'+id).setAttribute('opacity',seen.has(id)?'1':'.25'));
+      document.querySelectorAll('.pulse').forEach(e=>e.setAttribute('opacity','0'));
+      CUES[idx].items.filter(i=>i[0]==='place').forEach(([_,id])=>document.querySelector('#pin-'+id+' .pulse').setAttribute('opacity','.8'));
+      const ch=document.getElementById('chips');ch.innerHTML='';
+      CUES[idx].items.forEach(([k,id])=>{
+        const o=lookup(k,id);
+        const el=document.createElement('div');el.className='chip';
+        el.innerHTML=`<div class="thumb">${o.ico}</div><div><div class="t">${o.name}</div><div class="s">${ICON[k]} ${k==='place'?'Place':k==='person'?'Person':k==='doc'?'Document':'Photo'} · tap to open</div></div>`;
+        el.onclick=()=>openM(k,id);ch.appendChild(el);
+      });
+    } else sub.textContent='';
+  }
+  const len=document.getElementById('route').getTotalLength();
+  const frac=Math.min(1,Math.max(0,(t-0)/(DUR-20)));
+  const r=document.getElementById('route');r.style.strokeDasharray=len;r.style.strokeDashoffset=len*(1-frac);
+}
+function seek(s){t=s;last=-2;render()}
+tl.onclick=e=>{const r=tl.getBoundingClientRect();seek((e.clientX-r.left)/r.width*DUR)};
+document.getElementById('play').onclick=()=>{playing=!playing;document.getElementById('play').textContent=playing?'❚❚':'▶'};
+setInterval(()=>{if(playing){t+=.25*SPEED;if(t>=DUR){t=DUR-.1;playing=false;document.getElementById('play').textContent='▶'}render()}},250);
+document.getElementById('en').onclick=()=>setLang('en');document.getElementById('nl').onclick=()=>setLang('nl');
+function setLang(l){lang=l;document.getElementById('en').classList.toggle('on',l==='en');document.getElementById('nl').classList.toggle('on',l==='nl');
+  CUES.forEach((c,i)=>document.querySelector('#c'+i+' .tx').textContent=c[l]);last=-2;render()}
+render();
+
+// ---------- views ----------
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  ['watch','explore','about'].forEach(v=>document.getElementById(v).classList.toggle('hide',v!==b.dataset.v));
+  if(b.dataset.v==='explore')explore('places');
+});
+function explore(tab){
+  document.querySelectorAll('#etabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  const map={places:['place',PLACES],people:['person',PEOPLE],docs:['doc',DOCS],photos:['photo',PHOTOS]};
+  const [k,obj]=map[tab];const box=document.getElementById('ecols');box.innerHTML='';
+  Object.entries(obj).forEach(([id,o])=>{
+    const n=mentions(k,id);
+    const d=document.createElement('div');d.className='item';
+    d.innerHTML=`<div class="thumb">${o.ico}</div><div>${o.name}</div><div class="m">${n.length} mention${n.length===1?'':'s'}${n.length?' · '+n.map(c=>fmt(c.t)).join(', '):''}</div>`;
+    d.onclick=()=>openM(k,id);box.appendChild(d);
+  });
+}
+document.querySelectorAll('#etabs button').forEach(b=>b.onclick=()=>explore(b.dataset.t));
+const mentions=(k,id)=>CUES.filter(c=>c.items.some(i=>i[0]===k&&i[1]===id));
+
+// ---------- modal ----------
+let zoom=1;
+function openM(k,id){
+  const o=lookup(k,id);const ms=mentions(k,id);zoom=1;
+  let view='';
+  if(k==='place'){view=`<svg viewBox="0 0 300 220" width="100%"><rect width="300" height="220" fill="#16130f"/><circle cx="150" cy="110" r="70" fill="none" stroke="#3a322a"/><circle cx="150" cy="110" r="38" fill="none" stroke="#3a322a"/><circle cx="150" cy="110" r="7" fill="#d9a441"/><text x="162" y="106" fill="#e9e1d3" font-size="14">${o.name}</text><text x="10" y="212" fill="#5d5444" font-size="9">zoomed historical map placeholder</text></svg>`}
+  else if(k==='person'){view=`<div class="ph" style="width:220px;height:280px;font-size:110px">${o.ico}</div>`}
+  else if(k==='photo'){view=`<div class="ph">${o.ico}</div>`}
+  else {view=`<div style="overflow:auto;max-width:100%"><div id="paper" style="transform:scale(1);transform-origin:top left;display:inline-block">${o.html}</div><div class="zoom">Zoom <input type="range" min="1" max="2.5" step=".1" value="1" oninput="document.getElementById('paper').style.transform='scale('+this.value+')'"> · <span style="color:var(--gold)">Show translation</span></div></div>`}
+  const links=[];
+  if(o.wiki)links.push(`<a class="btn" href="${o.wiki}" target="_blank" rel="noopener">Wikipedia ↗</a>`);
+  if(o.src)links.push(`<a class="btn" href="${o.src}" target="_blank" rel="noopener">${o.srcName} ↗</a>`);
+  if(k==='place')links.push(`<a class="btn" href="https://www.google.com/maps/search/${encodeURIComponent(o.name)}" target="_blank" rel="noopener">Open in maps ↗</a>`);
+  const jumps=ms.map(c=>`<span class="btn" onclick="jump(${c.t})">▶ ${fmt(c.t)}</span>`).join('');
+  const quote=ms[0]?`<p class="quote">“${ms[0].en}”</p>`:'';
+  document.getElementById('modal').innerHTML=`<div class="view">${view}</div><div class="info"><div class="k">${k==='doc'?(o.kind||'Document'):k}</div><h2>${o.name}</h2><p>${o.desc}</p>${quote}<div class="k" style="margin-top:14px">Mentioned in the tape</div>${jumps||'<p>—</p>'}<div class="k" style="margin-top:14px">Learn more</div>${links.join('')||'<p>No external link</p>'}<div class="k" style="margin-top:14px">Related</div><span class="btn">+ Add note</span><span class="btn">Share this</span></div>`;
+  document.getElementById('ov').classList.add('show');
+}
+function closeM(){document.getElementById('ov').classList.remove('show')}
+document.getElementById('ov').onclick=e=>{if(e.target.id==='ov')closeM()};
+function jump(s){closeM();document.querySelector('nav button[data-v=watch]').click();seek(s+.5);playing=true;document.getElementById('play').textContent='❚❚'}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM()});
+</script>
+</body>
+</html>

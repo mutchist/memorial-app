@@ -1,0 +1,47 @@
+subject,predicate,object,role,date_text,tape,time,certainty,note
+Peter Engelsman,interviewed,Jonas Stemmer,,3 March 1997,1,0:24,confirmed,"In Scheveningen, in Dutch"
+Jonas Stemmer,born_in,Amsterdam,,7 November 1917,1,0:40,confirmed,
+Jonas Stemmer,lived_at,"Hartenstraat 19, Amsterdam",,1917–1919,1,0:48,confirmed,Birth home with shop downstairs
+David Loeb Stemmer,born_in,Oświęcim (Auschwitz),,,1,4:49,probable,Made him a Polish citizen
+David Loeb Stemmer,spouse_of,Augusta Stemmer-Better,,,4,21:25,confirmed,
+David Loeb Stemmer,spouse_of,Miriam Konig Stemmer,second wife,,2,10:21,probable,
+David Loeb Stemmer,lived_at,Ludwigshafen am Rhein,,1901–1929,1,1:41,confirmed,Parents lived there from 1901
+Jonas Stemmer,lived_at,"Maxstraße 7, Ludwigshafen",,c. 1920–1929,1,7:33,confirmed,
+Jonas Stemmer,studied_at,"Rhein School, Ludwigshafen",,1920s,1,6:29,confirmed,
+Jonas Stemmer,lived_at,"Gipsstraße, Berlin",,1930–1933,1,11:09,confirmed,Shop and home near Hackescher Markt
+Salomon Stemmer,lived_at,Nuremberg,,,1,2:55,confirmed,Married there
+Salomon Stemmer,emigrated_to,Den Haag,,1932,1,14:19,confirmed,
+Mordechai (Marcus) Stemmer,studied_at,"Nederlands-Israëlietisch Seminarium, Amsterdam",,from 1916,1,9:00,confirmed,
+Mordechai (Marcus) Stemmer,emigrated_to,Palestine,,1935,1,23:11,confirmed,"With wife and son, on a certificate"
+Salomon Stemmer,emigrated_to,Chile,,4 December 1939,1,24:31,confirmed,By boat via Trieste
+Jonas Stemmer,lived_at,"Schelderstraat, Den Haag",,1933,1,17:30,confirmed,First address in The Hague
+Jonas Stemmer,lived_at,"Radiolaan, Den Haag",,1930s,1,17:30,confirmed,
+Jonas Stemmer,worked_for,Mr. Hartog,manager,1939–1940,1,24:57,confirmed,
+Jonas Stemmer,spouse_of,Dora Stemmer,,31 December 1939,1,26:20,confirmed,Chuppah; civil marriage 10 May 1939
+Dora Stemmer,born_in,Sudetenland,,,2,2:54,confirmed,
+Jonas Stemmer,lived_at,"Nieuwe Schoolstraat, Den Haag",,1940–1942,2,11:26,confirmed,Near Hollands Spoor
+Jonas Stemmer,parent_of,Son of Jonas,father,15 July 1941,2,7:50,confirmed,
+Dora Stemmer,parent_of,Son of Jonas,mother,15 July 1941,2,7:50,confirmed,
+Jonas Stemmer,friend_of,Bernard de Leeuw,,,2,7:36,confirmed,
+Jonas Stemmer,friend_of,Berent Bekker,,,3,3:20,confirmed,
+Sally Noach,helped,Jonas Stemmer,,1942,3,5:51,confirmed,Office Néerlandais pass
+Jonas Stemmer,lived_at,"Hôtel Saint-Pothin, rue Saint-Pothin, Lyon",,July 1942,3,3:48,confirmed,
+Jonas Stemmer,lived_at,"Hotel on Quai Jayr, Lyon",,August 1942,3,6:36,confirmed,
+Kern family (Dora's cousins),interned_at,"Vénissieux camp (Indochinese barracks), near Lyon",,September 1942,3,16:39,to_verify,
+Kern family (Dora's cousins),interned_at,Buchenwald,husband and son,,3,18:51,confirmed,
+Jonas Stemmer,interned_at,"Varembé reception camp, Geneva",,September 1942,4,1:15,confirmed,
+Jonas Stemmer,interned_at,Eriswil,,autumn 1942,4,6:37,confirmed,
+Dora Stemmer,interned_at,"Bienenberg internment home, near Liestal",,1942–1943,4,7:38,confirmed,
+Jonas Stemmer,interned_at,Adliswil,,1943,4,8:29,confirmed,
+Jonas Stemmer,interned_at,"Le Chaluet labour camp, near Moutier",,1943,4,9:30,confirmed,
+Jonas Stemmer,interned_at,Raron labour camp,,1943–1944,4,10:45,confirmed,
+Jonas Stemmer,interned_at,Morgins internment camp,,1944–1945,4,11:21,confirmed,
+Dora Stemmer,parent_of,Second son of Jonas,mother,29 May 1945,4,14:21,confirmed,
+Jonas Stemmer,parent_of,Second son of Jonas,father,29 May 1945,4,14:21,confirmed,
+Second son of Jonas,born_in,Montreux,,29 May 1945,4,14:33,confirmed,
+Franz Fischer,arrested,Parents-in-law of Jonas,,September 1942,4,16:15,confirmed,
+Parents-in-law of Jonas,deported_to,Auschwitz,,September 1942,4,17:00,confirmed,Murdered within ten days
+Rosa Stemmer,deported_to,Sobibor,with her four children,April 1943,4,18:46,probable,
+David Loeb Stemmer,deported_to,Sobibor,,1943,4,18:58,to_verify,"Jonas corrects himself on the destination and date"
+Professor Shamir,lived_at,Jerusalem,,,4,22:48,confirmed,
+Rosa Stemmer,spouse_of,Moshe Zecharya Warhaftig,,,1,16:40,confirmed,

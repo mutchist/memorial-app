@@ -1,0 +1,9 @@
+# scans and videos stay on the PC and in Supabase Storage, not in GitHub
+Historic documents/
+upload/
+*.mp4
+*.mov
+# local only
+.dev.vars
+node_modules/
+.wrangler/

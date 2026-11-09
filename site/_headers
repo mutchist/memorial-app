@@ -1,0 +1,8 @@
+# the admin page should not show up in search engines
+/admin
+  X-Robots-Tag: noindex, nofollow
+/admin.html
+  X-Robots-Tag: noindex, nofollow
+# always check for a newer version, so an update shows on a normal reload
+/*
+  Cache-Control: no-cache

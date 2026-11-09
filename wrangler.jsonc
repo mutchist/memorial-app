@@ -1,0 +1,13 @@
+{
+  // Cloudflare Worker "memorial-app": serves the site/ folder as it is (no Worker code).
+  // Deployed from GitHub on every push to main (Workers Builds). See DEPLOY.md.
+  // The data lives in Supabase; the page reads it with the public (anon) key in site/config.js,
+  // and Supabase's row rules decide what anyone can read or change.
+  "name": "memorial-app",
+  "compatibility_date": "2025-09-01",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./site",
+    "not_found_handling": "404-page"
+  }
+}

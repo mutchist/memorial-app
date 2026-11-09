@@ -1,0 +1,100 @@
+﻿name,kind,lat,lng,coordinate_precision,mentions,first_mentioned
+Adliswil,city,47.31,8.525,town,1,T4 8:29
+Alsace,region,48.3,7.5,region,1,T3 27:25
+Amsterdam,city,52.3728,4.8936,town,1,T1 0:40
+Annemasse,city,46.1934,6.2342,town,1,T3 19:35
+Antwerp,city,51.2194,4.4025,town,2,T1 15:48
+Antwerpen-Centraal station,station,51.2172,4.4211,exact,1,T2 14:51
+Auschwitz,camp,50.027,19.204,exact,2,T3 12:09
+Baden,city,47.4733,8.308,town,1,T4 11:01
+"Barbed-wire gap, French–Swiss border",border,,,unknown,1,T3 29:21
+Basel,city,47.5596,7.5886,town,1,T4 7:38
+Belgian farmer's farm near the demarcation line,other,,,unknown,1,T2 24:17
+"Belgisch Park, Scheveningen",other,52.106,4.284,approx,1,T4 16:32
+Bergen op Zoom,city,51.4949,4.2911,town,1,T2 12:04
+Berlin,city,52.52,13.405,town,1,T1 6:45
+"Bienenberg internment home, near Liestal",other,47.474,7.752,approx,1,T4 7:38
+Brussels,city,50.8503,4.3517,town,1,T2 16:31
+Buchenwald,camp,51.0219,11.2481,exact,1,T3 18:51
+Charleville-Mézières,city,49.762,4.726,town,1,T2 18:00
+"Children's home and hospital, Geneva",other,,,unknown,1,T4 2:12
+Chile,country,-33.4489,-70.6693,country (Santiago),2,T1 24:12
+"Courthouse, Berlin-Mitte,  Littenstraße 12–17",other,52.518,13.416,double check,1,T1 13:12
+Den Haag,city,52.0705,4.3007,town,2,T1 14:27
+Drancy,camp,48.923,2.453,exact,1,T3 12:09
+Eindhoven,city,51.4416,5.4697,town,1,T4 13:13
+Eriswil,village,47.078,7.853,town,1,T4 6:37
+Farm near the Belgian border,other,,,unknown,1,T2 13:12
+"Gare d'Austerlitz, Paris",station,48.842,2.365,exact,1,T2 20:49
+Gendarmerie post near Annemasse,other,,,unknown,1,T3 24:51
+Geneva,city,46.2044,6.1432,town,2,T3 19:35
+"Gentsestraat 81, Scheveningen",address,52.105,4.278,check again,1,T1 20:24
+Genève-Cornavin station,station,46.2102,6.1424,exact,1,T4 3:38
+"Gipsstraße, Berlin",address,52.527,13.4,approx,1,T1 11:09
+"Goudenregenstraat, Den Haag",address,52.07,4.266,approx,1,T4 15:03
+"Haas Fashion, Spui, Den Haag",address,52.077,4.315,approx,1,T1 28:15
+Hamlet near the demarcation line,other,,,unknown,1,T2 22:23
+"Hartenstraat 19, Amsterdam",address,52.3725,4.885,approx,1,T1 0:48
+"Herengracht, Amsterdam",address,52.373,4.887,approx,1,T1 0:56
+"Hoefkade, Den Haag",address,52.067,4.308,approx,1,T4 16:00
+"Hotel on Quai Jayr, Lyon",address,45.776,4.809,approx,1,T3 6:36
+"Hôtel Saint-Pothin, rue Saint-Pothin, Lyon",address,45.768,4.846,approx,1,T3 3:48
+"IJmuiderstraat, Scheveningen",address,52.107,4.278,approx,1,T1 20:29
+Jerusalem,city,31.7683,35.2137,town,1,T4 22:48
+"Jewish quarter, Antwerp",other,51.214,4.417,approx,1,T2 15:25
+"Korte Vijverberg, Den Haag",address,52.0805,4.315,approx,1,T2 8:47
+Large farm in the unoccupied zone,other,,,unknown,1,T2 27:44
+Lausanne,city,46.5197,6.6323,town,1,T4 12:10
+"Le Chaluet labour camp, near Moutier",camp,47.26,7.28,approx,1,T4 9:30
+Limoges,city,45.8336,1.2611,town,1,T3 0:40
+Ludwigshafen am Rhein,city,49.4774,8.4452,town,1,T1 1:54
+Lyon,city,45.764,4.8357,town,3,T2 27:53
+Mannheim,city,49.4875,8.466,town,1,T1 3:07
+"Maxstraße 7, Ludwigshafen",address,49.48,8.44,approx,1,T1 7:33
+Montreux,city,46.4312,6.9107,town,1,T4 14:33
+Morgins internment camp,camp,46.238,6.859,town,1,T4 11:21
+"Nederlands-Israëlietisch Seminarium, Amsterdam",other,52.367,4.907,approx,1,T1 9:00
+"Nieuwe Schoolstraat, Den Haag",address,52.073,4.322,approx,1,T2 11:26
+Nuremberg,city,49.4521,11.0767,town,1,T1 2:55
+Oldenzaal,station,52.313,6.929,town,1,T1 15:54
+Oświęcim (Auschwitz),city,50.0344,19.2098,town,1,T1 4:49
+Palatinate (Pfalz),region,49.4,7.9,region,1,T1 5:46
+Palestine,country,31.7683,35.2137,country (Jerusalem),1,T1 18:10
+Paris,city,48.8566,2.3522,town,1,T2 19:03
+"Philips factory hall, Eindhoven",other,51.448,5.457,approx,1,T4 13:22
+"Prins Mauritslaan, Den Haag",address,52.096,4.283,approx,1,T4 15:54
+"Radiolaan, Den Haag",address,,,unknown,1,T1 17:30
+Raron labour camp,camp,46.311,7.8,town,1,T4 10:45
+Reims,city,49.2583,4.0317,town,1,T2 19:03
+"Rembrandtstraat, Den Haag",address,,,unknown,1,T2 10:42
+"Restaurant ""Am Brun"", Lyon",other,,,unknown,1,T3 3:20
+"Rhein School, Ludwigshafen",other,,,unknown,1,T1 6:29
+"Rijnstraat, Amsterdam",address,52.348,4.905,approx,1,T4 14:07
+Rijswijk,city,52.036,4.325,town,1,T4 20:29
+Rivesaltes,camp,42.798,2.874,exact,1,T3 26:08
+Rotterdam,city,51.9244,4.4777,town,2,T1 24:57
+"Route Nationale, French–Swiss border near Annemasse",border,46.19,6.21,approx,1,T3 23:00
+"Royal Palace, Dam, Amsterdam",other,52.3731,4.8913,exact,1,T1 0:56
+"Russian Shul, Nieuwe Kerkstraat, Amsterdam",other,52.365,4.905,approx,1,T1 10:35
+"Schelderstraat, Den Haag",address,,,unknown,1,T1 17:30
+Scheveningen,city,52.1083,4.273,town,2,T1 0:26
+Scheveningen Pier,other,52.115,4.277,exact,1,T2 4:00
+Small border station (Belgium),station,,,unknown,1,T2 14:19
+Small station in the unoccupied zone,station,,,unknown,1,T2 28:39
+Sobibor,camp,51.447,23.593,exact,2,T4 18:46
+Spain,country,40.4168,-3.7038,country (Madrid),1,T3 13:28
+"Station Hollands Spoor, Den Haag",station,52.0695,4.3225,exact,1,T2 11:26
+Sudetenland,region,50.6,14,region,1,T2 2:54
+Swiss gendarmerie post near Geneva,other,,,unknown,1,T4 0:19
+Switzerland,country,46.948,7.4474,country (Bern),1,T3 19:35
+"Sûreté (police headquarters), Lyon",other,,,unknown,1,T3 9:28
+Tours,city,47.3941,0.6848,town,1,T2 21:19
+Trieste,port,45.6495,13.7768,town,1,T1 24:31
+United States,country,40.7128,-74.006,country (New York),1,T2 2:42
+"Varembé reception camp, Geneva",camp,46.223,6.138,approx,1,T4 1:15
+Vienna,city,48.2082,16.3738,town,1,T3 19:07
+"Vénissieux camp (Indochinese barracks), near Lyon",camp,45.697,4.886,approx,1,T3 16:39
+Westerbork,camp,52.9177,6.6072,exact,1,T4 13:53
+"Windekind, Scheveningen",other,,,unknown,1,T4 16:49
+Worms,city,49.6341,8.3507,town,1,T1 5:06
+Zeeland,region,51.5,3.8,region,1,T1 9:45

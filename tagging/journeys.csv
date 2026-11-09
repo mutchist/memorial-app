@@ -1,0 +1,24 @@
+journey,leg,from,to,mode,date_text,tape,time,note
+Flight from Berlin 1933,1,Berlin,Oldenzaal,train,1933,1,15:40,Ticket was Berlin–Antwerp
+Flight from Berlin 1933,2,Oldenzaal,Den Haag,train,1933,1,15:54,Salomon meets them at the border
+Escape to Switzerland 1942,1,"Station Hollands Spoor, Den Haag",Bergen op Zoom,train,24 June 1942,2,11:26,Coats off to hide the star
+Escape to Switzerland 1942,2,Bergen op Zoom,Farm near the Belgian border,walk,24 June 1942,2,12:23,
+Escape to Switzerland 1942,3,Farm near the Belgian border,Small border station (Belgium),walk,25 June 1942,2,14:12,Smuggled across the border
+Escape to Switzerland 1942,4,Small border station (Belgium),Antwerpen-Centraal station,train,25 June 1942,2,14:19,
+Escape to Switzerland 1942,5,Antwerp,Brussels,train,early July 1942,2,16:31,
+Escape to Switzerland 1942,6,Brussels,Charleville-Mézières,walk,July 1942,2,17:50,"Train to the southeast, then on foot overnight; Dora and the baby by train"
+Escape to Switzerland 1942,7,Charleville-Mézières,Reims,train,July 1942,2,18:48,
+Escape to Switzerland 1942,8,Reims,Paris,train,July 1942,2,19:03,
+Escape to Switzerland 1942,9,"Gare d'Austerlitz, Paris",Tours,train,July 1942,2,21:14,
+Escape to Switzerland 1942,10,Tours,Hamlet near the demarcation line,truck,July 1942,2,22:15,
+Escape to Switzerland 1942,11,Hamlet near the demarcation line,Large farm in the unoccupied zone,walk,July 1942,2,26:28,Night crossing of the demarcation line
+Escape to Switzerland 1942,12,Large farm in the unoccupied zone,Small station in the unoccupied zone,horse_cart,July 1942,2,28:39,
+Escape to Switzerland 1942,13,Small station in the unoccupied zone,Limoges,train,July 1942,3,0:40,
+Escape to Switzerland 1942,14,Limoges,Lyon,train,July 1942,3,1:26,Night train
+Escape to Switzerland 1942,15,Lyon,Annemasse,train,September 1942,3,20:32,
+Escape to Switzerland 1942,16,Annemasse,"Route Nationale, French–Swiss border near Annemasse",bus,September 1942,3,22:00,
+Escape to Switzerland 1942,17,"Route Nationale, French–Swiss border near Annemasse","Barbed-wire gap, French–Swiss border",walk,September 1942,3,29:03,
+Escape to Switzerland 1942,18,"Barbed-wire gap, French–Swiss border","Varembé reception camp, Geneva",car,September 1942,4,1:15,
+Swiss internment 1942–1945,1,"Genève-Cornavin station",Eriswil,train,autumn 1942,4,6:11,Locked carriage
+Return to the Netherlands 1945,1,Basel,Eindhoven,train,7 November 1945,4,13:13,Arrived on Jonas's birthday
+Return to the Netherlands 1945,2,Eindhoven,Den Haag,unknown,November 1945,4,14:53,

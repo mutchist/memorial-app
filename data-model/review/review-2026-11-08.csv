@@ -1,0 +1,251 @@
+﻿ref,group,item,what we have now,certainty now,question,answer (yes / no / fix),your correction or note,key (leave as is)
+R001,1 people,Abel Herzberg,"Wrote about the shul in ""Brieven aan mijn kleinzoon""",to verify,Is this right?,yes,,entity:abel-herzberg
+R002,1 people,Augusta Stemmer-Better,Collected watches and clocks in the villages (named on tape 4 at 21:32),to verify,Is this right?,yes,jonas mother,entity:augusta-stemmer-better
+R003,1 people,Belgian farmer,Shelters the group on his farm,to verify,Do you know his name?,,,entity:belgian-farmer
+R004,1 people,Berent Bekker,"Friend from The Hague, met in Lyon",to verify,Is this right?,yes,,entity:berent-bekker
+R005,1 people,Bernard de Leeuw,Friend from Amsterdam who suggested fleeing,to verify,Is this right?,yes,,entity:bernard-de-leeuw
+R006,1 people,Chaskel Radler,Named on a scan in Historic documents.,to verify,Is this right?,remove. This is another project,,entity:chaskel-radler
+R007,1 people,David Loeb Stemmer,Watch and gold/silver dealer (named on tape 4 at 21:25),to verify,Is this right?,yes,jonas father,entity:david-loeb-stemmer
+R008,1 people,Dora Stemmer,Met in Scheveningen (named on tape 2 at 0:51),to verify,Is this right?,yes,jonas wife,entity:dora-stemmer
+R009,1 people,Franz Fischer,"""Judenfischer"", SD officer in The Hague",to verify,Is this right?,yes,,entity:franz-fischer
+R010,1 people,Helena Berglas,Named on a scan in Historic documents.,to verify,Is this right?,yes,jonas mother inlaw,entity:helena-berglas
+R011,1 people,Klaus Barbie,Jonas sees him at the table. Barbie only reached Lyon in November 1942; to verify,to verify,Is this right?,yes,,entity:klaus-barbie
+R012,1 people,Malke Berglas,Named on a scan in Historic documents.,to verify,Is this right?,yes,dora sister,entity:malke-berglas
+R013,1 people,Marek Radler,Named on a scan in Historic documents.,to verify,Is this right?,yes,dora father,entity:marek-radler
+R014,1 people,Miriam Konig Stemmer,Name not given,to verify,Is the name spelled right?,yes,jonas step mother,entity:miriam-konig-stemmer
+R015,1 people,Mordechai (Marcus) Stemmer,"Second brother, born 1906 in Ludwigshafen",to verify,Is this right?,yes,jonas brother,entity:mordechai-marcus-stemmer
+R016,1 people,Moshe Zecharya Warhaftig,Rosa's husband; they came to the Netherlands months later,to verify,Is this right?,yes,,entity:moshe-zecharya-warhaftig
+R017,1 people,Mr. Hartog,Rotterdam clothing manufacturer; makes Jonas manager in The Hague,to verify,Is this right?,yes,jonas business partner,entity:mr-hartog
+R018,1 people,Peter Engelsman,Interviewer,to verify,Is this right?,yes,,entity:peter-engelsman
+R019,1 people,"Police doctor, Lyon",Had freed the Kern family once before; name not given,to verify,Do you know his name?,,,entity:police-doctor-lyon
+R020,1 people,Professor Shamir,"Marcus's only child, later a professor in Jerusalem",to verify,Is this right?,yes,mordecai stemmer son,entity:professor-shamir
+R021,1 people,Rachelle Radler,Named on a scan in Historic documents.,to verify,Is this right?,yes,dora sister,entity:rachelle-radler
+R022,1 people,Sally Noach,Helped Dutch refugees in Lyon; got Jonas his pass,to verify,Is this right?,yes,,entity:sally-noach
+R023,1 people,Salomon Stemmer,"Eldest brother, born 1901 (named at 9:22)",to verify,Is this right?,yes,jonas oldest brother,entity:salomon-stemmer
+R024,1 people,Sara Hana Radler,Named on a scan in Historic documents.,to verify,Is this right?,yes,dora sister,entity:sara-hana-radler
+R025,1 people,Second son of Jonas,Born 29 May 1945 in Montreux; name not given,to verify,What was his name?,yes,simon stemmer,entity:second-son-of-jonas
+R026,1 people,Sister of Salomon's wife,Lyon contact; left Antwerp in 1940,to verify,Do you know her name?,,,entity:sister-of-salomon-s-wife
+R027,1 people,Son of Jonas,Born 15 July 1941; name not given,to verify,What was his name?,,mosche israel stemmer,entity:son-of-jonas
+R028,2 facts,David Loeb Stemmer born in Oświęcim (Auschwitz),Made him a Polish citizen,probable,Is this right?,yes,,relation:david-loeb-stemmer|born_in|oswiecim-auschwitz
+R029,2 facts,David Loeb Stemmer deported to Sobibor,1943 · Jonas corrects himself on the destination and date,to verify,Is this right?,yes,,relation:david-loeb-stemmer|deported_to|sobibor
+R030,2 facts,David Loeb Stemmer married to Miriam Konig Stemmer,second wife,probable,Is this right?,yes,,relation:david-loeb-stemmer|spouse_of|miriam-konig-stemmer
+R031,2 facts,"David Stemmer, card about David Loeb Stemmer",holder · Matched by name only,probable,Is this right?,yes,,relation:david-stemmer-card|about|david-loeb-stemmer
+R032,2 facts,"David Stemmer, second card about David Loeb Stemmer",holder · Matched by name only,probable,Is this right?,yes,,relation:david-stemmer-second-card|about|david-loeb-stemmer
+R033,2 facts,"Kern family (Dora's cousins) interned at Vénissieux camp (Indochinese barracks), near Lyon",Sep-42,to verify,Is this right?,yes,,relation:kern-family-dora-s-cousins|interned_at|venissieux-camp-indochinese-barracks-near-lyon
+R034,2 facts,Rosa Stemmer deported to Sobibor,with her four children · April 1943,probable,Is this right?,yes,,relation:rosa-stemmer|deported_to|sobibor
+R035,3 documents and photos,"David Stemmer, card",Scan in Historic documents. Archive and reference to be added.,probable,Is the description right? Who or what is it about?,yes,,entity:david-stemmer-card
+R036,3 documents and photos,"David Stemmer, second card",Scan in Historic documents. Archive and reference to be added.,probable,Is the description right? Who or what is it about?,yes,,entity:david-stemmer-second-card
+R037,3 documents and photos,Displaced person registration papers,Jonas still has them,to verify,Is the description right? Who or what is it about?,yes,,entity:displaced-person-registration-papers
+R038,3 documents and photos,Family photo with Marcus's family,"Taken before they left for Palestine, 1935",to verify,Is the description right? Who or what is it about?,yes,,entity:family-photo-with-marcus-s-family
+R039,3 documents and photos,Identity card from the Dutch consulate in Bern,Jonas still has it,to verify,Is the description right? Who or what is it about?,yes,,entity:identity-card-from-the-dutch-consulate-in-bern
+R040,3 documents and photos,Letters from the Geneva hospital,Jonas says he still has them,to verify,Is the description right? Who or what is it about?,yes,,entity:letters-from-the-geneva-hospital
+R041,3 documents and photos,Office Néerlandais pass,Document confirming Jonas was Dutch,to verify,Is the description right? Who or what is it about?,yes,,entity:office-neerlandais-pass
+R042,3 documents and photos,"Personal identity card (persoonsbewijs) with ""J""",Issued at a school next to their home,to verify,Is the description right? Who or what is it about?,yes,,entity:personal-identity-card-persoonsbewijs-with-j
+R043,3 documents and photos,"Photo of David Loeb Stemmer, c. 1935–36",Taken in the Netherlands,to verify,Is the description right? Who or what is it about?,yes,,entity:photo-of-david-loeb-stemmer-c-193536
+R044,3 documents and photos,Photo of David Loeb and Augusta Stemmer,Shown on camera,to verify,Is the description right? Who or what is it about?,yes,,entity:photo-of-david-loeb-and-augusta-stemmer
+R045,3 documents and photos,Photo of Le Chaluet,"""You have seen the photo""",to verify,Is the description right? Who or what is it about?,yes,,entity:photo-of-le-chaluet
+R046,3 documents and photos,Photo of Marcus Stemmer,Jonas says he has a photo of his brother,to verify,Is the description right? Who or what is it about?,yes,,entity:photo-of-marcus-stemmer
+R047,3 documents and photos,Receipt for confiscated money,Jonas says he still has it,to verify,Is the description right? Who or what is it about?,yes,,entity:receipt-for-confiscated-money
+R048,3 documents and photos,Swiss refugee pass,Records his camps,to verify,Is the description right? Who or what is it about?,yes,,entity:swiss-refugee-pass
+R049,3 documents and photos,Telegram from Salomon in Chile,"""I will send a visa as soon as possible""; Jonas still has it",to verify,Is the description right? Who or what is it about?,yes,,entity:telegram-from-salomon-in-chile
+R050,3 documents and photos,Travel permit (sauf-conduit),"Lyon–Annemasse, stating ""Protestant""",to verify,Is the description right? Who or what is it about?,yes,,entity:travel-permit-sauf-conduit
+R051,4 organisations and groups,Chamber of Commerce (Kamer van Koophandel),"Records Jonas taking over Hartog's business, April 1940",to verify,Is this right?,,,entity:chamber-of-commerce-kamer-van-koophandel
+R052,4 organisations and groups,French national police,Night raid on the hotel,to verify,Is this right?,,,entity:french-national-police
+R053,4 organisations and groups,Gendarmes,7 fellow refugees taken off the train's second car,to verify,Is this right?,,,entity:gendarmes
+R054,4 organisations and groups,Hilfspolizei,SA auxiliary police beating Jews in Berlin,to verify,Is this right?,yes,,entity:hilfspolizei
+R055,4 organisations and groups,IG Farben,Industrial giant in Ludwigshafen; father traded waste gold with them,to verify,Is this right?,yes,,entity:ig-farben
+R056,4 organisations and groups,Jewish Agency,Issued immigration certificates,to verify,Is this right?,,,entity:jewish-agency
+R057,4 organisations and groups,Jewish Brigade,Present in Eindhoven,to verify,Is this right?,,,entity:jewish-brigade
+R058,4 organisations and groups,Kern family (Dora's cousins),From Brussels; arrives in Lyon with husband and son,to verify,Is this right?,yes,,entity:kern-family-dora-s-cousins
+R059,4 organisations and groups,Office Néerlandais,Dutch office aiding refugees in unoccupied France,to verify,Is this right?,,,entity:office-neerlandais
+R060,4 organisations and groups,Parents-in-law of Jonas,With 3 daughters and twin grandchildren aged 3,to verify,Is this right?,,,entity:parents-in-law-of-jonas
+R061,4 organisations and groups,Property management institute (Nederlands Beheersinstituut),Post-war body managing Jewish property,to verify,Is this right?,,,entity:property-management-institute-nederlands-beheersinstituut
+R062,4 organisations and groups,SA (Sturmabteilung),Marching with swastika flags through their street,to verify,Is this right?,,,entity:sa-sturmabteilung
+R063,4 organisations and groups,Siblings of Jonas,Three brothers and one sister,to verify,Is this right?,yes,,entity:siblings-of-jonas
+R064,4 organisations and groups,Swiss Red Cross,Jonas pleads for his wife and sick child,to verify,Is this right?,,,entity:swiss-red-cross
+R065,4 organisations and groups,Twin brothers from Brussels,Fellow refugees who spoke good French; names forgotten,to verify,Is this right?,yes,,entity:twin-brothers-from-brussels
+R066,4 organisations and groups,Wehrmacht,Monthly forms asking for work for the German army,to verify,Is this right?,,,entity:wehrmacht
+R067,4 organisations and groups,Wirtschaftsprüfstelle,German economic control office,to verify,Is this right?,,,entity:wirtschaftsprufstelle
+R068,5 events,Parents had lived in Ludwigshafen since 1901,1901,to verify,Is this right (and the date)?,,,entity:parents-had-lived-in-ludwigshafen-since-1901
+R069,5 events,Jonas's birth,7-Nov-17,to verify,Is this right (and the date)?,yes,,entity:jonas-s-birth
+R070,5 events,Family returns to Germany,1919–1920,to verify,Is this right (and the date)?,,,entity:family-returns-to-germany
+R071,5 events,Economic crisis in Germany,end of 1929,to verify,Is this right (and the date)?,,,entity:economic-crisis-in-germany
+R072,5 events,Salomon moves from Nuremberg to The Hague,1932,to verify,Is this right (and the date)?,,,entity:salomon-moves-from-nuremberg-to-the-hague
+R073,5 events,Jonas and parents flee to the Netherlands by train,1933,to verify,Is this right (and the date)?,,,entity:jonas-and-parents-flee-to-the-netherlands-by-train
+R074,5 events,SA men abuse his father in a Berlin alley,1933,to verify,Is this right (and the date)?,,,entity:sa-men-abuse-his-father-in-a-berlin-alley
+R075,5 events,Hitler comes to power,30-Jan-33,to verify,Is this right (and the date)?,,,entity:hitler-comes-to-power
+R076,5 events,Marcus beaten by the SA in the Berlin courthouse,March/April 1933,to verify,Is this right (and the date)?,,,entity:marcus-beaten-by-the-sa-in-the-berlin-courthouse
+R077,5 events,"Marcus, wife and son emigrate to Palestine",1935,to verify,Is this right (and the date)?,,,entity:marcus-wife-and-son-emigrate-to-palestine
+R078,5 events,Jonas gets engaged,end of 1937,to verify,Is this right (and the date)?,,,entity:jonas-gets-engaged
+R079,5 events,"Civil marriage, to qualify for the US quota",10-May-39,to verify,Is this right (and the date)?,,,entity:civil-marriage-to-qualify-for-the-us-quota
+R080,5 events,War breaks out,1-Sep-39,to verify,Is this right (and the date)?,,,entity:war-breaks-out
+R081,5 events,Salomon leaves for Chile by boat via Trieste,4-Dec-39,to verify,Is this right (and the date)?,,,entity:salomon-leaves-for-chile-by-boat-via-trieste
+R082,5 events,Jonas's wedding,31-Dec-39,to verify,Is this right (and the date)?,,,entity:jonas-s-wedding
+R083,5 events,Hartog moves the business to Rotterdam,early March 1940,to verify,Is this right (and the date)?,,,entity:hartog-moves-the-business-to-rotterdam
+R084,5 events,Jonas takes over the business,Apr-40,to verify,Is this right (and the date)?,,,entity:jonas-takes-over-the-business
+R085,5 events,"German invasion of the Netherlands, Friday morning",10-May-40,to verify,Is this right (and the date)?,,,entity:german-invasion-of-the-netherlands-friday-morning
+R086,5 events,Bombing of Rotterdam; the Netherlands capitulates,14-May-40,to verify,Is this right (and the date)?,,,entity:bombing-of-rotterdam-the-netherlands-capitulates
+R087,5 events,Jewish businesses must register,1941,to verify,Is this right (and the date)?,,,entity:jewish-businesses-must-register
+R088,5 events,Jonas's son is born,15-Jul-41,to verify,Is this right (and the date)?,,,entity:jonas-s-son-is-born
+R089,5 events,"Jonas, Dora and baby flee, Wednesday morning",24-Jun-42,to verify,Is this right (and the date)?,,,entity:jonas-dora-and-baby-flee-wednesday-morning
+R090,5 events,Arrival in Lyon after 12 hours on the train,Jul-42,to verify,Is this right (and the date)?,,,entity:arrival-in-lyon-after-12-hours-on-the-train
+R091,5 events,Biggest roundup in Paris,Jul-42,to verify,Is this right (and the date)?,,,entity:biggest-roundup-in-paris
+R092,5 events,"Arrival in Switzerland, about 3 days before Rosh Hashanah",early September 1942,to verify,Is this right (and the date)?,,,entity:arrival-in-switzerland-about-3-days-before-rosh-hashanah
+R093,5 events,Dora's parents and family are arrested,Sep-42,to verify,Is this right (and the date)?,,,entity:dora-s-parents-and-family-are-arrested
+R094,5 events,Second raid in Lyon,Sep-42,to verify,Is this right (and the date)?,,,entity:second-raid-in-lyon
+R095,5 events,Jonas transferred,March/April 1943,to verify,Is this right (and the date)?,,,entity:jonas-transferred
+R096,5 events,Dora and the child join him at Morgins,1944,to verify,Is this right (and the date)?,,,entity:dora-and-the-child-join-him-at-morgins
+R097,5 events,Liberation,May-45,to verify,Is this right (and the date)?,,,entity:liberation
+R098,5 events,Second son born,29-May-45,to verify,Is this right (and the date)?,,,entity:second-son-born
+R099,5 events,"Return to the Netherlands, on Jonas's birthday",7-Nov-45,to verify,Is this right (and the date)?,,,entity:return-to-the-netherlands-on-jonas-s-birthday
+R100,5 events,Date of the interview,3-Mar-97,to verify,Is this right (and the date)?,,,entity:date-of-the-interview
+R101,6 journeys,Escape to Switzerland 1942,"Escape to Switzerland 1942, leg 1: Station Hollands Spoor, Den Haag to Bergen op Zoom / Escape to Switzerland 1942, leg 2: Bergen op Zoom to Farm near the Belgian border / Escape to Switzerland 1942, leg 3: Farm near the Belgian border to Small border station (Belgium) / Escape to Switzerland 1942, leg 4: Small border station (Belgium) to Antwerpen-Centraal station / Escape to Switzerland 1942, leg 5: Antwerp to Brussels / Escape to Switzerland 1942, leg 6: Brussels to Charleville-Mézières / Escape to Switzerland 1942, leg 7: Charleville-Mézières to Reims / Escape to Switzerland 1942, leg 8: Reims to Paris / Escape to Switzerland 1942, leg 9: Gare d'Austerlitz, Paris to Tours / Escape to Switzerland 1942, leg 10: Tours to Hamlet near the demarcation line / Escape to Switzerland 1942, leg 11: Hamlet near the demarcation line to Large farm in the unoccupied zone / Escape to Switzerland 1942, leg 12: Large farm in the unoccupied zone to Small station in the unoccupied zone / Escape to Switzerland 1942, leg 13: Small station in the unoccupied zone to Limoges / Escape to Switzerland 1942, leg 14: Limoges to Lyon / Escape to Switzerland 1942, leg 15: Lyon to Annemasse / Escape to Switzerland 1942, leg 16: Annemasse to Route Nationale, French–Swiss border near Annemasse / Escape to Switzerland 1942, leg 17: Route Nationale, French–Swiss border near Annemasse to Barbed-wire gap, French–Swiss border / Escape to Switzerland 1942, leg 18: Barbed-wire gap, French–Swiss border to Varembé reception camp, Geneva",to verify,Is the route right? (answer yes to confirm all its legs),,,journey:escape-to-switzerland-1942
+R102,6 journeys,Flight from Berlin 1933,"Flight from Berlin 1933, leg 1: Berlin to Oldenzaal / Flight from Berlin 1933, leg 2: Oldenzaal to Den Haag",to verify,Is the route right? (answer yes to confirm all its legs),,,journey:flight-from-berlin-1933
+R103,6 journeys,Return to the Netherlands 1945,"Return to the Netherlands 1945, leg 1: Basel to Eindhoven / Return to the Netherlands 1945, leg 2: Eindhoven to Den Haag",to verify,Is the route right? (answer yes to confirm all its legs),,,journey:return-to-the-netherlands-1945
+R104,6 journeys,Swiss internment 1942–1945,"Swiss internment 1942–1945, leg 1: Genève-Cornavin station to Eriswil",to verify,Is the route right? (answer yes to confirm all its legs),,,journey:swiss-internment-19421945
+R105,7 places,Adliswil,"map position 47.31, 8.525 (town)",to verify,Is the place right?,,,entity:adliswil
+R106,7 places,Alsace,"map position 48.3, 7.5 (region)",to verify,Is the place right?,,,entity:alsace
+R107,7 places,Amsterdam,"map position 52.3728, 4.8936 (town)",to verify,Is the place right?,,,entity:amsterdam
+R108,7 places,Annemasse,"map position 46.1934, 6.2342 (town)",to verify,Is the place right?,,,entity:annemasse
+R109,7 places,Antwerp,"map position 51.2194, 4.4025 (town)",to verify,Is the place right?,,,entity:antwerp
+R110,7 places,Antwerpen-Centraal station,"map position 51.2172, 4.4211 (exact)",to verify,Is the place right?,,,entity:antwerpen-centraal-station
+R111,7 places,Auschwitz,"map position 50.027, 19.204 (exact)",to verify,Is the place right?,,,entity:auschwitz
+R112,7 places,Baden,"map position 47.4733, 8.308 (town)",to verify,Is the place right?,,,entity:baden
+R113,7 places,"Barbed-wire gap, French–Swiss border",no map position yet,to verify,Is the place right?,,,entity:barbed-wire-gap-frenchswiss-border
+R114,7 places,Basel,"map position 47.5596, 7.5886 (town)",to verify,Is the place right?,,,entity:basel
+R115,7 places,Belgian farmer's farm near the demarcation line,no map position yet,to verify,Is the place right?,,,entity:belgian-farmer-s-farm-near-the-demarcation-line
+R116,7 places,"Belgisch Park, Scheveningen","map position 52.106, 4.284 (approx)",to verify,Is the place right?,,,entity:belgisch-park-scheveningen
+R117,7 places,Bergen op Zoom,"map position 51.4949, 4.2911 (town)",to verify,Is the place right?,,,entity:bergen-op-zoom
+R118,7 places,Berlin,"map position 52.52, 13.405 (town)",to verify,Is the place right?,,,entity:berlin
+R119,7 places,"Bienenberg internment home, near Liestal","map position 47.474, 7.752 (approx)",to verify,Is the place right?,,,entity:bienenberg-internment-home-near-liestal
+R120,7 places,Brussels,"map position 50.8503, 4.3517 (town)",to verify,Is the place right?,,,entity:brussels
+R121,7 places,Buchenwald,"map position 51.0219, 11.2481 (exact)",to verify,Is the place right?,,,entity:buchenwald
+R122,7 places,Charleville-Mézières,"map position 49.762, 4.726 (town)",to verify,Is the place right?,,,entity:charleville-mezieres
+R123,7 places,"Children's home and hospital, Geneva",no map position yet,to verify,Is the place right?,,,entity:children-s-home-and-hospital-geneva
+R124,7 places,Chile,"map position -33.4489, -70.6693 (country (Santiago))",to verify,Is the place right?,,,entity:chile
+R125,7 places,"Courthouse, Berlin-Mitte, Littenstraße 12–17","map position 52.518, 13.416 (double check)",to verify,Is the place right?,,,entity:courthouse-berlin-mitte-littenstrae-1217
+R126,7 places,Den Haag,"map position 52.0705, 4.3007 (town)",to verify,Is the place right?,,,entity:den-haag
+R127,7 places,Drancy,"map position 48.923, 2.453 (exact)",to verify,Is the place right?,,,entity:drancy
+R128,7 places,Eindhoven,"map position 51.4416, 5.4697 (town)",to verify,Is the place right?,,,entity:eindhoven
+R129,7 places,Eriswil,"map position 47.078, 7.853 (town)",to verify,Is the place right?,,,entity:eriswil
+R130,7 places,Farm near the Belgian border,no map position yet,to verify,Is the place right?,,,entity:farm-near-the-belgian-border
+R131,7 places,"Gare d'Austerlitz, Paris","map position 48.842, 2.365 (exact)",to verify,Is the place right?,,,entity:gare-d-austerlitz-paris
+R132,7 places,Gendarmerie post near Annemasse,no map position yet,to verify,Is the place right?,,,entity:gendarmerie-post-near-annemasse
+R133,7 places,Geneva,"map position 46.2044, 6.1432 (town)",to verify,Is the place right?,,,entity:geneva
+R134,7 places,"Gentsestraat 81, Scheveningen","map position 52.105, 4.278 (check again)",to verify,Is the place right?,,,entity:gentsestraat-81-scheveningen
+R135,7 places,Genève-Cornavin station,"map position 46.2102, 6.1424 (exact)",to verify,Is the place right?,,,entity:geneve-cornavin-station
+R136,7 places,"Gipsstraße, Berlin","map position 52.527, 13.4 (approx)",to verify,Is the place right?,,,entity:gipsstrae-berlin
+R137,7 places,"Goudenregenstraat, Den Haag","map position 52.07, 4.266 (approx)",to verify,Is the place right?,,,entity:goudenregenstraat-den-haag
+R138,7 places,"Haas Fashion, Spui, Den Haag","map position 52.077, 4.315 (approx)",to verify,Is the place right?,,,entity:haas-fashion-spui-den-haag
+R139,7 places,Hamlet near the demarcation line,no map position yet,to verify,Is the place right?,,,entity:hamlet-near-the-demarcation-line
+R140,7 places,"Hartenstraat 19, Amsterdam","map position 52.3725, 4.885 (approx)",to verify,Is the place right?,,,entity:hartenstraat-19-amsterdam
+R141,7 places,"Herengracht, Amsterdam","map position 52.373, 4.887 (approx)",to verify,Is the place right?,,,entity:herengracht-amsterdam
+R142,7 places,"Hoefkade, Den Haag","map position 52.067, 4.308 (approx)",to verify,Is the place right?,,,entity:hoefkade-den-haag
+R143,7 places,"Hotel on Quai Jayr, Lyon","map position 45.776, 4.809 (approx)",to verify,Is the place right?,,,entity:hotel-on-quai-jayr-lyon
+R144,7 places,"Hôtel Saint-Pothin, rue Saint-Pothin, Lyon","map position 45.768, 4.846 (approx)",to verify,Is the place right?,,,entity:hotel-saint-pothin-rue-saint-pothin-lyon
+R145,7 places,"IJmuiderstraat, Scheveningen","map position 52.107, 4.278 (approx)",to verify,Is the place right?,,,entity:ijmuiderstraat-scheveningen
+R146,7 places,Jerusalem,"map position 31.7683, 35.2137 (town)",to verify,Is the place right?,,,entity:jerusalem
+R147,7 places,"Jewish quarter, Antwerp","map position 51.214, 4.417 (approx)",to verify,Is the place right?,,,entity:jewish-quarter-antwerp
+R148,7 places,"Korte Vijverberg, Den Haag","map position 52.0805, 4.315 (approx)",to verify,Is the place right?,,,entity:korte-vijverberg-den-haag
+R149,7 places,Large farm in the unoccupied zone,no map position yet,to verify,Is the place right?,,,entity:large-farm-in-the-unoccupied-zone
+R150,7 places,Lausanne,"map position 46.5197, 6.6323 (town)",to verify,Is the place right?,,,entity:lausanne
+R151,7 places,"Le Chaluet labour camp, near Moutier","map position 47.26, 7.28 (approx)",to verify,Is the place right?,,,entity:le-chaluet-labour-camp-near-moutier
+R152,7 places,Limoges,"map position 45.8336, 1.2611 (town)",to verify,Is the place right?,,,entity:limoges
+R153,7 places,Ludwigshafen am Rhein,"map position 49.4774, 8.4452 (town)",to verify,Is the place right?,,,entity:ludwigshafen-am-rhein
+R154,7 places,Lyon,"map position 45.764, 4.8357 (town)",to verify,Is the place right?,,,entity:lyon
+R155,7 places,Mannheim,"map position 49.4875, 8.466 (town)",to verify,Is the place right?,,,entity:mannheim
+R156,7 places,"Maxstraße 7, Ludwigshafen","map position 49.48, 8.44 (approx)",to verify,Is the place right?,,,entity:maxstrae-7-ludwigshafen
+R157,7 places,Montreux,"map position 46.4312, 6.9107 (town)",to verify,Is the place right?,,,entity:montreux
+R158,7 places,Morgins internment camp,"map position 46.238, 6.859 (town)",to verify,Is the place right?,,,entity:morgins-internment-camp
+R159,7 places,"Nederlands-Israëlietisch Seminarium, Amsterdam","map position 52.367, 4.907 (approx)",to verify,Is the place right?,,,entity:nederlands-israelietisch-seminarium-amsterdam
+R160,7 places,"Nieuwe Schoolstraat, Den Haag","map position 52.073, 4.322 (approx)",to verify,Is the place right?,,,entity:nieuwe-schoolstraat-den-haag
+R161,7 places,Nuremberg,"map position 49.4521, 11.0767 (town)",to verify,Is the place right?,,,entity:nuremberg
+R162,7 places,Oldenzaal,"map position 52.313, 6.929 (town)",to verify,Is the place right?,,,entity:oldenzaal
+R163,7 places,Oświęcim (Auschwitz),"map position 50.0344, 19.2098 (town)",to verify,Is the place right?,,,entity:oswiecim-auschwitz
+R164,7 places,Palatinate (Pfalz),"map position 49.4, 7.9 (region)",to verify,Is the place right?,,,entity:palatinate-pfalz
+R165,7 places,Palestine,"map position 31.7683, 35.2137 (country (Jerusalem))",to verify,Is the place right?,,,entity:palestine
+R166,7 places,Paris,"map position 48.8566, 2.3522 (town)",to verify,Is the place right?,,,entity:paris
+R167,7 places,"Philips factory hall, Eindhoven","map position 51.448, 5.457 (approx)",to verify,Is the place right?,,,entity:philips-factory-hall-eindhoven
+R168,7 places,"Prins Mauritslaan, Den Haag","map position 52.096, 4.283 (approx)",to verify,Is the place right?,,,entity:prins-mauritslaan-den-haag
+R169,7 places,"Radiolaan, Den Haag",no map position yet,to verify,Is the place right?,,,entity:radiolaan-den-haag
+R170,7 places,Raron labour camp,"map position 46.311, 7.8 (town)",to verify,Is the place right?,,,entity:raron-labour-camp
+R171,7 places,Reims,"map position 49.2583, 4.0317 (town)",to verify,Is the place right?,,,entity:reims
+R172,7 places,"Rembrandtstraat, Den Haag",no map position yet,to verify,Is the place right?,,,entity:rembrandtstraat-den-haag
+R173,7 places,"Restaurant ""Am Brun"", Lyon",no map position yet,to verify,Is the place right?,,,entity:restaurant-am-brun-lyon
+R174,7 places,"Rhein School, Ludwigshafen",no map position yet,to verify,Is the place right?,,,entity:rhein-school-ludwigshafen
+R175,7 places,"Rijnstraat, Amsterdam","map position 52.348, 4.905 (approx)",to verify,Is the place right?,,,entity:rijnstraat-amsterdam
+R176,7 places,Rijswijk,"map position 52.036, 4.325 (town)",to verify,Is the place right?,,,entity:rijswijk
+R177,7 places,Rivesaltes,"map position 42.798, 2.874 (exact)",to verify,Is the place right?,,,entity:rivesaltes
+R178,7 places,Rotterdam,"map position 51.9244, 4.4777 (town)",to verify,Is the place right?,,,entity:rotterdam
+R179,7 places,"Route Nationale, French–Swiss border near Annemasse","map position 46.19, 6.21 (approx)",to verify,Is the place right?,,,entity:route-nationale-frenchswiss-border-near-annemasse
+R180,7 places,"Royal Palace, Dam, Amsterdam","map position 52.3731, 4.8913 (exact)",to verify,Is the place right?,,,entity:royal-palace-dam-amsterdam
+R181,7 places,"Russian Shul, Nieuwe Kerkstraat, Amsterdam","map position 52.365, 4.905 (approx)",to verify,Is the place right?,,,entity:russian-shul-nieuwe-kerkstraat-amsterdam
+R182,7 places,"Schelderstraat, Den Haag",no map position yet,to verify,Is the place right?,,,entity:schelderstraat-den-haag
+R183,7 places,Scheveningen,"map position 52.1083, 4.273 (town)",to verify,Is the place right?,,,entity:scheveningen
+R184,7 places,Scheveningen Pier,"map position 52.115, 4.277 (exact)",to verify,Is the place right?,,,entity:scheveningen-pier
+R185,7 places,Small border station (Belgium),no map position yet,to verify,Is the place right?,,,entity:small-border-station-belgium
+R186,7 places,Small station in the unoccupied zone,no map position yet,to verify,Is the place right?,,,entity:small-station-in-the-unoccupied-zone
+R187,7 places,Sobibor,"map position 51.447, 23.593 (exact)",to verify,Is the place right?,,,entity:sobibor
+R188,7 places,Spain,"map position 40.4168, -3.7038 (country (Madrid))",to verify,Is the place right?,,,entity:spain
+R189,7 places,"Station Hollands Spoor, Den Haag","map position 52.0695, 4.3225 (exact)",to verify,Is the place right?,,,entity:station-hollands-spoor-den-haag
+R190,7 places,Sudetenland,"map position 50.6, 14 (region)",to verify,Is the place right?,,,entity:sudetenland
+R191,7 places,Swiss gendarmerie post near Geneva,no map position yet,to verify,Is the place right?,,,entity:swiss-gendarmerie-post-near-geneva
+R192,7 places,Switzerland,"map position 46.948, 7.4474 (country (Bern))",to verify,Is the place right?,,,entity:switzerland
+R193,7 places,"Sûreté (police headquarters), Lyon",no map position yet,to verify,Is the place right?,,,entity:surete-police-headquarters-lyon
+R194,7 places,Tours,"map position 47.3941, 0.6848 (town)",to verify,Is the place right?,,,entity:tours
+R195,7 places,Trieste,"map position 45.6495, 13.7768 (town)",to verify,Is the place right?,,,entity:trieste
+R196,7 places,United States,"map position 40.7128, -74.006 (country (New York))",to verify,Is the place right?,,,entity:united-states
+R197,7 places,"Varembé reception camp, Geneva","map position 46.223, 6.138 (approx)",to verify,Is the place right?,,,entity:varembe-reception-camp-geneva
+R198,7 places,Vienna,"map position 48.2082, 16.3738 (town)",to verify,Is the place right?,,,entity:vienna
+R199,7 places,"Vénissieux camp (Indochinese barracks), near Lyon","map position 45.697, 4.886 (approx)",to verify,Is the place right?,,,entity:venissieux-camp-indochinese-barracks-near-lyon
+R200,7 places,Westerbork,"map position 52.9177, 6.6072 (exact)",to verify,Is the place right?,,,entity:westerbork
+R201,7 places,"Windekind, Scheveningen",no map position yet,to verify,Is the place right?,,,entity:windekind-scheveningen
+R202,7 places,Worms,"map position 49.6341, 8.3507 (town)",to verify,Is the place right?,,,entity:worms
+R203,7 places,Zeeland,"map position 51.5, 3.8 (region)",to verify,Is the place right?,,,entity:zeeland
+R204,8 terms,17th of Tammuz,Fast day; rabbis of The Hague deported,to verify,Is the explanation right?,,,entity:17th-of-tammuz
+R205,8 terms,Anschluss,"Annexation of Austria, 1938",to verify,Is the explanation right?,,,entity:anschluss
+R206,8 terms,Anti-Jewish decrees,Begin in 1941,to verify,Is the explanation right?,,,entity:anti-jewish-decrees
+R207,8 terms,"Belgian star (""J"")","Different from the Dutch ""Jood"" star",to verify,Is the explanation right?,,,entity:belgian-star-j
+R208,8 terms,Bombing of Rotterdam,14-May-40,to verify,Is the explanation right?,,,entity:bombing-of-rotterdam
+R209,8 terms,Brit Milah,Circumcision ceremony of Salomon's first son,to verify,Is the explanation right?,,,entity:brit-milah
+R210,8 terms,Camp de travail,Labour camp; the other group went to Drancy and Auschwitz,to verify,Is the explanation right?,,,entity:camp-de-travail
+R211,8 terms,Certificate (immigration to Palestine),British-issued permit; hard to get,to verify,Is the explanation right?,,,entity:certificate-immigration-to-palestine
+R212,8 terms,Cheder,Religious school of the Eastern Jewish community,to verify,Is the explanation right?,,,entity:cheder
+R213,8 terms,Chuppah,Jewish wedding canopy,to verify,Is the explanation right?,,,entity:chuppah
+R214,8 terms,Crossing the Dutch–Belgian border,Smuggled across on foot,to verify,Is the explanation right?,,,entity:crossing-the-dutchbelgian-border
+R215,8 terms,Crossing the demarcation line,Night walk from 10:30 pm to 6 am through the forest,to verify,Is the explanation right?,,,entity:crossing-the-demarcation-line
+R216,8 terms,Death march,Husband shot; son survived,to verify,Is the explanation right?,,,entity:death-march
+R217,8 terms,Demarcation line,Border between occupied and unoccupied France,to verify,Is the explanation right?,,,entity:demarcation-line
+R218,8 terms,Distribution radio (radiodistributie),Wired radio service,to verify,Is the explanation right?,,,entity:distribution-radio-radiodistributie
+R219,8 terms,Ear irons (oorijzers),Gold/silver parts of Zeeland traditional headdress,to verify,Is the explanation right?,,,entity:ear-irons-oorijzers
+R220,8 terms,Exit visa and transit visa,Needed to leave France via Spain,to verify,Is the explanation right?,,,entity:exit-visa-and-transit-visa
+R221,8 terms,February strike,February 1941 strike against the raids in Amsterdam,to verify,Is the explanation right?,,,entity:february-strike
+R222,8 terms,French occupation of the Rhineland,Troops crossing the Rhine; Jonas gets lost aged 6,to verify,Is the explanation right?,,,entity:french-occupation-of-the-rhineland
+R223,8 terms,German invasion of the Netherlands,Planes with the German cross over The Hague,to verify,Is the explanation right?,,,entity:german-invasion-of-the-netherlands
+R224,8 terms,German soldiers in the hotel,Paris hotel,to verify,Is the explanation right?,,,entity:german-soldiers-in-the-hotel
+R225,8 terms,Hachshara,Agricultural training for emigrants to Palestine,to verify,Is the explanation right?,,,entity:hachshara
+R226,8 terms,Kristallnacht,November 1938 pogrom,to verify,Is the explanation right?,,,entity:kristallnacht
+R227,8 terms,Labour camps (werkkampen),Jonas called up for so-called work camps,to verify,Is the explanation right?,,,entity:labour-camps-werkkampen
+R228,8 terms,Orthodox Judaism,"""We were very orthodox at that time""",to verify,Is the explanation right?,,,entity:orthodox-judaism
+R229,8 terms,Passeur (border smuggler),About 200 francs to cross,to verify,Is the explanation right?,,,entity:passeur-border-smuggler
+R230,8 terms,Persoonsbewijs,Dutch identity card; Jews' cards stamped with a J,to verify,Is the explanation right?,,,entity:persoonsbewijs
+R231,8 terms,Raids (razzia's),Roundups of Jews,to verify,Is the explanation right?,,,entity:raids-razzia-s
+R232,8 terms,Raids in Lyon,"Roundups of foreign Jews, summer 1942",to verify,Is the explanation right?,,,entity:raids-in-lyon
+R233,8 terms,Repatriation debt,"Billed for the return journey; 500 Swiss francs, paid off",to verify,Is the explanation right?,,,entity:repatriation-debt
+R234,8 terms,Rosh Hashanah,Jewish New Year,to verify,Is the explanation right?,,,entity:rosh-hashanah
+R235,8 terms,Smugglers (passeurs),"2 smugglers, 12 refugees",to verify,Is the explanation right?,,,entity:smugglers-passeurs
+R236,8 terms,Statelessness,Not allowed back to the Netherlands as a non-Dutch citizen,to verify,Is the explanation right?,,,entity:statelessness
+R237,8 terms,Sukkot,Invited by a Swiss Jewish family,to verify,Is the explanation right?,,,entity:sukkot
+R238,8 terms,Swiss border rejections,Families with children were admitted; thousands of others sent back,to verify,Is the explanation right?,,,entity:swiss-border-rejections
+R239,8 terms,Swiss customs officer,Leads them over the border,to verify,Is the explanation right?,,,entity:swiss-customs-officer
+R240,8 terms,Tallit and tefillin,The only things in his bag,to verify,Is the explanation right?,,,entity:tallit-and-tefillin
+R241,8 terms,Threat of expulsion,"Geneva police: ""You are not a Dutchman""; ends well",to verify,Is the explanation right?,,,entity:threat-of-expulsion
+R242,8 terms,Vel' d'Hiv roundup,"He says Sunday, July 1942; the roundup was 16–17 July 1942. To verify",to verify,Is the explanation right?,,,entity:vel-d-hiv-roundup
+R243,8 terms,Verwalter (administrator),Germans appointed administrators over Jewish businesses,to verify,Is the explanation right?,,,entity:verwalter-administrator
+R244,8 terms,Vichy France (unoccupied zone),Their goal,to verify,Is the explanation right?,,,entity:vichy-france-unoccupied-zone
+R245,8 terms,Yellow star,Compulsory for Jews from May 1942,to verify,Is the explanation right?,,,entity:yellow-star
+R246,8 terms,Yom Kippur,Spent in Geneva,to verify,Is the explanation right?,,,entity:yom-kippur
+R247,9 tapes,Tape 1,,to verify,Confirm?,,,entity:tape-1
+R248,9 tapes,Tape 2,,to verify,Confirm?,,,entity:tape-2
+R249,9 tapes,Tape 3,,to verify,Confirm?,,,entity:tape-3
+R250,9 tapes,Tape 4,,to verify,Confirm?,,,entity:tape-4
