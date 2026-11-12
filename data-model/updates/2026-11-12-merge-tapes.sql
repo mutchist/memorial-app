@@ -10,12 +10,12 @@ begin;
 
 create temp table merge_params on commit drop as
 select 'FILL IN'::text                  as youtube_id,    -- new video ID, the part after watch?v=
-       array[0, 0, 0, 0]::numeric[]     as durations;     -- FILL IN: exact length of tapes 1-4 in seconds (ffprobe)
+       array[1728, 1765, 1809, 1425]::numeric[] as durations;  -- length of tapes 1-4 in seconds (28:48, 29:25, 30:09, 23:45)
 
 do $$
 begin
   if (select youtube_id = 'FILL IN' or 0 = any(durations) from merge_params) then
-    raise exception 'Fill in the new YouTube ID and the four tape lengths at the top of this script first';
+    raise exception 'Fill in the new YouTube ID at the top of this script first';
   end if;
   if (select count(*) from entities where type = 'tape') <> 4 then
     raise exception 'Expected 4 tapes in the database; has this already been run?';
