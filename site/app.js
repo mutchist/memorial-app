@@ -319,7 +319,10 @@
   // Story dates are set by hand in the admin (Tape moments): from that moment on, the story is at that date,
   // across tapes, until the next one. The strip shows every dated event; the marker shows the story date now.
   const STRIP_TICK_YEARS = 5, STRIP_LABEL_YEARS = 10;
-  const storyDates = TAPES.flatMap((T, ti) => T.story_dates.map(d => ({ g: G(ti, +d.t), text: d.text, year: yearOf(d.from) }))).sort((a, b) => a.g - b.g);
+  // the database update 2026-11-12-story-dates.sql adds story_dates to each tape; until it is run there are none (said in the console)
+  const hasStoryDates = TAPES.every(T => 'story_dates' in T);
+  if (!hasStoryDates) console.error('Story dates are missing: run data-model/updates/2026-11-12-story-dates.sql in Supabase');
+  const storyDates = !hasStoryDates ? [] : TAPES.flatMap((T, ti) => T.story_dates.map(d => ({ g: G(ti, +d.t), text: d.text, year: yearOf(d.from) }))).sort((a, b) => a.g - b.g);
   function yearOf(iso) { const d = new Date(iso + 'T00:00:00Z'); const y = d.getUTCFullYear(); return y + (d - Date.UTC(y, 0, 1)) / (Date.UTC(y + 1, 0, 1) - Date.UTC(y, 0, 1)); }
   const dated = Object.values(E).filter(e => e.type === 'event' && e.date_from).map(e => ({ id: e.id, year: yearOf(e.date_from) }));
   const strip = $('#yearStrip');
