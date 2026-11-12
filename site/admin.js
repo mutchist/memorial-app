@@ -761,7 +761,7 @@
         const li = el('li', 'leg');
         const mode = modeOf(L);
         const sw = `<svg class="ln" viewBox="0 0 18 4" width="18" height="4"><line x1="1" y1="2" x2="17" y2="2" stroke="${mode.display.color}" stroke-width="3" stroke-linecap="round"/></svg>`;
-        const anim = L.anim ? ` · draws at tape ${S.entities.get(L.anim.subject_id).attrs.number} ${fmtTime(L.anim.start_sec)}` : ' · <span class="warn">no tape moment</span>';
+        const anim = L.anim ? ` · draws at ${[...S.entities.values()].filter(x => x.type === 'tape').length > 1 ? `tape ${S.entities.get(L.anim.subject_id).attrs.number} ` : ''}${fmtTime(L.anim.start_sec)}` : ' · <span class="warn">no tape moment</span>';
         const missing = [L.from ? null : 'start place', L.to ? null : 'end place'].filter(x => x).join(' and ');
         const nocoord = [L.from, L.to].filter(p => p && p.lat === null).map(p => p.name);
         li.innerHTML = `<div class="leg-main"><div class="leg-t"><b>${L.order}.</b> ${L.from ? esc(L.from.name) : '?'} → ${L.to ? esc(L.to.name) : '?'}</div>
