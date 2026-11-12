@@ -283,6 +283,7 @@
         f => f.input === 'select' ? optionChoices(type, f.key) : []));
       const kindSel = attrBox.querySelector('[data-key="kind"]');
       if (kindSel) kindSel.onchange = () => { const cur = readAttrs(attrBox); renderAttrs(cur); };
+      attrBox.querySelectorAll('textarea[data-input="geojson"]').forEach(ta => ta.closest('div').appendChild(kmlImportButton(ta, form)));
     };
     renderAttrs(e ? e.attrs : {});
     ed.appendChild(form);
@@ -311,6 +312,52 @@
     box.querySelectorAll('[data-key]').forEach(inp => { const v = readInput(inp); if (v !== null) out[inp.dataset.key] = v; });
     return out;
   }
+  // ---------- KML files (e.g. an area outline drawn in Google My Maps / Earth) -> GeoJSON ----------
+  const AREA_KEY = 'area';   // place attrs field holding the outline (attr_fields)
+  const kmlCoords = text => text.trim().split(/\s+/).map(t => { const [lng, lat] = t.split(',').map(Number); if (!isFinite(lng) || !isFinite(lat)) throw new Error(`"${t}" is not a coordinate`); return [lng, lat]; });
+  function kmlToGeometry(text) {
+    const doc = new DOMParser().parseFromString(text, 'application/xml');
+    if (doc.querySelector('parsererror')) throw new Error('This file is not valid KML');
+    const tag = (n, name) => [...n.getElementsByTagNameNS('*', name)];
+    const polys = tag(doc, 'Polygon').map(pg => {
+      const outer = tag(pg, 'outerBoundaryIs').flatMap(b => tag(b, 'coordinates'));
+      const inner = tag(pg, 'innerBoundaryIs').flatMap(b => tag(b, 'coordinates'));
+      if (outer.length !== 1) throw new Error('A polygon in the file has no outer boundary');
+      return [kmlCoords(outer[0].textContent), ...inner.map(c => kmlCoords(c.textContent))];
+    });
+    const lines = tag(doc, 'LineString').map(l => kmlCoords(tag(l, 'coordinates')[0].textContent));
+    const points = tag(doc, 'Point').length;
+    // an outline wins over lines; points (e.g. landmarks) are not part of a shape
+    if (polys.length) return { geometry: polys.length === 1 ? { type: 'Polygon', coordinates: polys[0] } : { type: 'MultiPolygon', coordinates: polys }, ignored: lines.length + points };
+    if (lines.length) return { geometry: lines.length === 1 ? { type: 'LineString', coordinates: lines[0] } : { type: 'MultiLineString', coordinates: lines }, ignored: points };
+    throw new Error('The file has no outline or line in it (only points)');
+  }
+  const flatCoords = g => g.type === 'Polygon' || g.type === 'MultiLineString' ? g.coordinates.flat() : g.type === 'MultiPolygon' ? g.coordinates.flat(2) : g.coordinates;
+  const bboxOf = g => flatCoords(g).reduce((b, [x, y]) => [Math.min(b[0], x), Math.min(b[1], y), Math.max(b[2], x), Math.max(b[3], y)], [Infinity, Infinity, -Infinity, -Infinity]);
+  function kmlImportButton(ta, form) {
+    const fi = el('input'); fi.type = 'file'; fi.accept = '.kml,application/vnd.google-earth.kml+xml'; fi.hidden = true;
+    const b = el('button', 'linkbtn', 'Import from a KML file…'); b.type = 'button'; b.onclick = () => fi.click();
+    fi.onchange = async () => {
+      try {
+        const { geometry, ignored } = kmlToGeometry(await fi.files[0].text());
+        ta.value = JSON.stringify(geometry);
+        let note = `${geometry.type} with ${flatCoords(geometry).length} points loaded`;
+        // a place with an outline but no pin gets its pin in the middle of the outline
+        const latIn = form.querySelector('[data-key="lat"]'), lngIn = form.querySelector('[data-key="lng"]');
+        if (latIn && lngIn && latIn.value === '' && lngIn.value === '') {
+          const [x0, y0, x1, y1] = bboxOf(geometry);
+          latIn.value = ((y0 + y1) / 2).toFixed(5); lngIn.value = ((x0 + x1) / 2).toFixed(5);
+          latIn.dispatchEvent(new Event('change')); note += '; pin set to its middle';
+        }
+        if (ignored) note += `; ${ignored} other thing(s) in the file skipped`;
+        ta.dispatchEvent(new Event('input', { bubbles: true })); ta.dispatchEvent(new Event('change', { bubbles: true }));
+        toast(note + '. Press Save to keep it.');
+      } catch (err) { fail(err); }
+      fi.value = '';
+    };
+    const w = el('span'); w.append(b, fi); return w;
+  }
+
   function mountPinMap(node, form) {
     const latIn = form.querySelector('[data-key="lat"]'), lngIn = form.querySelector('[data-key="lng"]');
     const has = latIn.value !== '' && lngIn.value !== '';
@@ -325,6 +372,23 @@
     pinMap.on('click', ev => { marker.setLngLat(ev.lngLat).addTo(pinMap); set(ev.lngLat); });
     const sync = () => { if (latIn.value !== '' && lngIn.value !== '') marker.setLngLat([+lngIn.value, +latIn.value]).addTo(pinMap); };
     latIn.addEventListener('change', sync); lngIn.addEventListener('change', sync);
+    // the place's outline, if it has one
+    const showArea = fit => {
+      const ta = form.querySelector(`[data-key="${AREA_KEY}"]`);
+      let g = null;
+      try { g = ta && ta.value.trim() !== '' ? JSON.parse(ta.value) : null; } catch (err) { return; }   // the field reports bad JSON on Save
+      if (!pinMap.getSource('area')) return;
+      pinMap.getSource('area').setData({ type: 'FeatureCollection', features: g ? [{ type: 'Feature', properties: {}, geometry: g }] : [] });
+      if (g && fit) { const b = bboxOf(g); pinMap.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 40, duration: 0 }); }
+    };
+    pinMap.on('load', () => {
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      pinMap.addSource('area', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      pinMap.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': accent, 'fill-opacity': .15 } });
+      pinMap.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': accent, 'line-width': 2 } });
+      showArea(true);
+    });
+    form.addEventListener('change', ev => { if (ev.target.dataset.key === AREA_KEY) showArea(true); });
   }
 
   async function saveEntity(form, attrBox) {

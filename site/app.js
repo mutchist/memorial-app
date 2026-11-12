@@ -223,6 +223,7 @@
   }
 
   // ---------- stage (right panel): a picture, else the map when it has something to show, else the chapter card ----------
+  const AREA_KEY = 'area';   // place attrs field with its outline (GeoJSON Polygon/MultiPolygon)
   const MAP_HOLD = 60;   // seconds the map stays after a place is mentioned or a route leg starts drawing
   const stage = $('#stage'), stagePic = $('#stagePic'), pinBtn = $('#pinMap');
   pinBtn.onclick = () => { st.pinMap = !st.pinMap; pinBtn.setAttribute('aria-pressed', String(st.pinMap)); renderStage(st.t); };
@@ -333,13 +334,16 @@
   map.on('style.load', () => {
     clearTimeout(failTimer); mapReady = true;
     const empty = { type: 'FeatureCollection', features: [] };
-    ['legs', 'visited', 'current'].forEach(id => { if (!map.getSource(id)) map.addSource(id, { type: 'geojson', data: empty }); });
+    ['legs', 'visited', 'current', 'area'].forEach(id => { if (!map.getSource(id)) map.addSource(id, { type: 'geojson', data: empty }); });
     const line = (id, filter, paint) => { if (!map.getLayer(id)) map.addLayer({ id, type: 'line', source: 'legs', filter, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint }); };
     Object.values(MODES).forEach(o => {
       const d = o.display, paint = { 'line-color': d.color, 'line-width': d.width };
       if (d.dash) paint['line-dasharray'] = d.dash;
       line('leg-' + o.value, ['==', ['get', 'mode'], o.value], paint);
     });
+    // the outline of the current place, if it has one (place attrs.area, e.g. a neighbourhood)
+    if (!map.getLayer('area-fill')) map.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': ACCENT, 'fill-opacity': .14 } });
+    if (!map.getLayer('area-line')) map.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': ACCENT, 'line-width': 1.6, 'line-opacity': .8 } });
     if (!map.getLayer('visited')) map.addLayer({ id: 'visited', type: 'circle', source: 'visited', paint: {
       'circle-radius': 4, 'circle-color': ['case', ['get', 'est'], 'rgba(0,0,0,0)', INK], 'circle-stroke-color': INK,
       'circle-stroke-width': ['case', ['get', 'est'], 1.2, 0], 'circle-opacity': .8 } });
@@ -415,10 +419,16 @@
     const feat = id => ({ type: 'Feature', properties: { id, name: E[id].name, est: estimated.has(id) }, geometry: { type: 'Point', coordinates: coord[id] } });
     map.getSource('visited').setData({ type: 'FeatureCollection', features: [...visited.keys()].map(feat) });
     map.getSource('current').setData({ type: 'FeatureCollection', features: current ? [feat(current.id)] : [] });
+    const area = current && AREA_KEY in E[current.id].attrs ? E[current.id].attrs[AREA_KEY] : null;
+    map.getSource('area').setData({ type: 'FeatureCollection', features: area ? [{ type: 'Feature', properties: {}, geometry: area }] : [] });
     if (current && current.id !== st.lastPlace) {
       st.lastPlace = current.id;
       const zoom = option(E[current.id], 'kind').display.zoom;
-      map.flyTo({ center: coord[current.id], zoom, speed: jump ? 3 : 0.8, curve: 1.5, essential: true });
+      if (area) {   // show the whole outline, no closer than the kind's zoom
+        const pts = area.type === 'Polygon' ? area.coordinates.flat() : area.coordinates.flat(2);
+        const b = pts.reduce((a, [x, y]) => [Math.min(a[0], x), Math.min(a[1], y), Math.max(a[2], x), Math.max(a[3], y)], [Infinity, Infinity, -Infinity, -Infinity]);
+        map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 60, maxZoom: zoom, speed: jump ? 3 : 0.8, curve: 1.5, essential: true });
+      } else map.flyTo({ center: coord[current.id], zoom, speed: jump ? 3 : 0.8, curve: 1.5, essential: true });
     }
   }
 

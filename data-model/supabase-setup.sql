@@ -421,6 +421,7 @@ insert into attr_fields (entity_type, key, label, input, when_kind, required, po
  ('place',        'kind',          'Kind of place',      'select',   null, true,  1, null),
  ('place',        'historic_name', 'Historic name',      'text',     null, false, 2, 'Name used at the time, e.g. Auschwitz for Oświęcim'),
  ('place',        'address',       'Street address',     'text',     null, false, 3, 'e.g. Maxstraße 7, 67059 Ludwigshafen am Rhein'),
+ ('place',        'area',          'Area outline',       'geojson',  null, false, 4, 'For a neighbourhood or other area. Use "Import from a KML file…" below.'),
  ('organisation', 'kind',          'Kind of organisation','select',  null, false, 1, null),
  ('document',     'kind',          'Kind of document',   'select',   null, false, 1, null),
  ('document',     'archive_ref',   'Archive reference',  'text',     null, false, 2, null),
