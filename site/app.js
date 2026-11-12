@@ -76,7 +76,7 @@
   });
 
   // ---------- state ----------
-  const st = { ti: 0, t: 0, playing: false, speed: 16, lastCue: -1, lastNowKey: '', lastPlace: null, yt: null, ytReady: false, picToMap: null };
+  const st = { ti: 0, t: 0, playing: false, speed: 16, lastCue: -1, lastNowKey: '', lastPlace: null, yt: null, ytReady: false, picToMap: null, storyKey: null, lastPlaceName: null, stripNow: null };
   const tape = () => TAPES[st.ti];
   const g = () => G(st.ti, st.t);
 
@@ -219,6 +219,7 @@
     renderStage(t);
 
     renderContext();
+    renderStory();
     renderMap(jump);
   }
 
@@ -307,12 +308,58 @@
     trail.forEach(m => { const e = E[m.id]; const c = el('button', 'chip', `<i class="dot ${typeClass(e.type)}"></i>${esc(e.name)}`); c.onclick = () => openEntity(m.id); trailBox.appendChild(c); });
     if (!trail.length) trailBox.appendChild(el('p', 'empty', '—'));
 
-    // story date and place for the map overlay
-    const lastDated = [...past].reverse().find(m => E[m.id].type === 'event' && E[m.id].date_text);
+    // place for the map overlay (the date comes from the story dates, renderStory)
     const lastPlace = [...past].reverse().find(m => E[m.id].type === 'place');
-    $('#when').textContent = $('#cWhen').textContent = lastDated ? E[lastDated.id].date_text : '';
     $('#where').textContent = $('#cWhere').textContent = lastPlace ? E[lastPlace.id].name : '';
-    if (!lastDated && !lastPlace) $('#cWhen').textContent = TAPES[st.ti].name;
+    st.lastPlaceName = lastPlace ? E[lastPlace.id].name : null;
+    st.storyKey = null; renderStory();
+  }
+
+  // ---------- story date and year strip ----------
+  // Story dates are set by hand in the admin (Tape moments): from that moment on, the story is at that date,
+  // across tapes, until the next one. The strip shows every dated event; the marker shows the story date now.
+  const STRIP_TICK_YEARS = 5, STRIP_LABEL_YEARS = 10;
+  const storyDates = TAPES.flatMap((T, ti) => T.story_dates.map(d => ({ g: G(ti, +d.t), text: d.text, year: yearOf(d.from) }))).sort((a, b) => a.g - b.g);
+  function yearOf(iso) { const d = new Date(iso + 'T00:00:00Z'); const y = d.getUTCFullYear(); return y + (d - Date.UTC(y, 0, 1)) / (Date.UTC(y + 1, 0, 1) - Date.UTC(y, 0, 1)); }
+  const dated = Object.values(E).filter(e => e.type === 'event' && e.date_from).map(e => ({ id: e.id, year: yearOf(e.date_from) }));
+  const strip = $('#yearStrip');
+  // the range is set in config.js (storyYears); without it the strip is not shown
+  const [Y0, Y1] = Array.isArray(window.SITE_CONFIG.storyYears) ? window.SITE_CONFIG.storyYears : [null, null];
+  if (Y0 === null) console.error('config.js has no storyYears: the year strip is off');
+  const inRange = y => y >= Y0 && y < Y1 + 1;
+  const xOf = y => ((y - Y0) / (Y1 + 1 - Y0) * 100) + '%';
+  const stripMarks = {};
+  if (Y0 === null) strip.hidden = true;
+  else {
+    const track = el('div', 'ys-track');
+    for (let y = Y0; y <= Y1; y += STRIP_TICK_YEARS) {
+      const t = el('span', 'ys-tick' + (y % STRIP_LABEL_YEARS === 0 ? ' major' : ''), y % STRIP_LABEL_YEARS === 0 ? `<b>${y}</b>` : null);
+      t.style.left = xOf(y); track.appendChild(t);
+    }
+    const before = dated.filter(d => d.year < Y0).length, after = dated.filter(d => d.year >= Y1 + 1).length;
+    if (before) track.appendChild(el('span', 'ys-out start', `← ${before} earlier`));
+    if (after) track.appendChild(el('span', 'ys-out end', `${after} later →`));
+    dated.filter(d => inRange(d.year)).forEach(d => {
+      const e = E[d.id], b = el('button', 'ys-mark');
+      b.style.left = xOf(d.year); b.title = `${e.name}${e.date_text ? ' · ' + e.date_text : ''}`; b.setAttribute('aria-label', b.title);
+      b.onclick = () => openEntity(d.id); stripMarks[d.id] = b; track.appendChild(b);
+    });
+    const now = el('div', 'ys-now'); now.innerHTML = '<span></span>'; now.hidden = true; track.appendChild(now);
+    strip.appendChild(track); st.stripNow = now;
+  }
+  function renderStory() {
+    const G0 = g();
+    let cur = null; for (const d of storyDates) { if (d.g <= G0) cur = d; else break; }
+    const seenIds = new Set(); for (const m of allMoments) { if (m.g > G0) break; seenIds.add(m.id); }
+    const key = (cur ? cur.g : '-') + '|' + seenIds.size;
+    if (key === st.storyKey) return;
+    st.storyKey = key;
+    $('#when').textContent = $('#cWhen').textContent = cur ? cur.text : '';
+    if (!cur && st.lastPlaceName === null) $('#cWhen').textContent = TAPES[st.ti].name;
+    if (Y0 === null) return;
+    st.stripNow.hidden = !cur || !inRange(cur.year);
+    if (cur) { st.stripNow.style.left = xOf(cur.year); st.stripNow.firstChild.textContent = cur.text; }
+    Object.entries(stripMarks).forEach(([id, b]) => b.classList.toggle('seen', seenIds.has(id)));
   }
 
   // ---------- map ----------

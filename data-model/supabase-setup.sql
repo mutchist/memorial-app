@@ -287,6 +287,19 @@ create table cues (
   unique (tape_id, lang, seq),
   check (end_sec > start_sec)
 );
+
+-- Story dates: when in Jonas's life the tape is at, set by hand per stretch of tape.
+-- From start_sec until the next story date of the same tape, the Watch page shows
+-- date_text on the map and puts the "now" marker of the year strip at date_from.
+create table story_dates (
+  id         uuid primary key default gen_random_uuid(),
+  tape_id    uuid not null references entities(id) on delete cascade,
+  start_sec  numeric(8,3) not null check (start_sec >= 0),
+  date_text  text not null check (date_text <> ''),   -- as shown, e.g. "Summer 1942"
+  date_from  date not null,                           -- for the year strip, e.g. 1942-06-01
+  note       text,
+  unique (tape_id, start_sec)
+);
 create index cues_time on cues (tape_id, lang, start_sec);
 
 -- Scan sides of a document or photo entity.
@@ -486,6 +499,7 @@ create trigger history after insert or update or delete on entity_pages for each
 create trigger history after insert or update or delete on page_fields  for each row execute function log_revision('id');
 create trigger history after insert or update or delete on links        for each row execute function log_revision('id');
 create trigger history after insert or update or delete on media        for each row execute function log_revision('id');
+create trigger history after insert or update or delete on story_dates  for each row execute function log_revision('id');
 create trigger history after insert or update or delete on pages        for each row execute function log_revision('slug');
 
 -- =====================================================================
@@ -526,7 +540,9 @@ select json_build_object(
       'id', e.id, 'number', (e.attrs->>'number')::int, 'name', e.name,
       'youtube_id', e.attrs->>'youtube_id', 'duration', (e.attrs->>'duration_sec')::numeric,
       'cues', to_json(array(select json_build_array(c.start_sec, c.end_sec, c.text)
-                            from cues c where c.tape_id = e.id and c.lang = 'en' order by c.seq)))
+                            from cues c where c.tape_id = e.id and c.lang = 'en' order by c.seq)),
+      'story_dates', to_json(array(select json_build_object('t', d.start_sec, 'text', d.date_text, 'from', d.date_from)
+                            from story_dates d where d.tape_id = e.id order by d.start_sec)))
     from entities e where e.type = 'tape' order by (e.attrs->>'number')::int)),
   'pages', to_json(array(select json_strip_nulls(json_build_object(
       'entity', p.entity_id, 'position', p.position, 'label', p.label,
@@ -602,7 +618,7 @@ begin
     execute format($p$create policy public_read on %I for select using (status = 'published' or is_admin())$p$, t);
     execute format($p$create policy admin_write on %I for all using (is_admin()) with check (is_admin())$p$, t);
   end loop;
-  foreach t in array array['relation_types','entity_types','attr_fields','attr_options','media','cues','entity_pages','page_fields','links','link_sites'] loop
+  foreach t in array array['relation_types','entity_types','attr_fields','attr_options','media','cues','entity_pages','page_fields','links','link_sites','story_dates'] loop
     execute format('alter table %I enable row level security', t);
     execute format('create policy public_read on %I for select using (true)', t);
     execute format($p$create policy admin_write on %I for all using (is_admin()) with check (is_admin())$p$, t);

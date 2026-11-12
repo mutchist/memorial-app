@@ -1187,12 +1187,13 @@
     bar.append(tapeSel, modeSel, typeSel, find, onlyOn); root.appendChild(bar);
     const counts = el('div', 'mt-counts'); root.appendChild(counts);
     const list = el('div', 'mt-list'); root.appendChild(list);
-    let cues = [], rels = [], rows = [], tagOpen = null, byLineNow = new Map();   // tagOpen: { cue, form api } of the open tag form
+    let cues = [], rels = [], storyDates = [], rows = [], tagOpen = null, byLineNow = new Map(), dateAtNow = new Map();   // tagOpen: { cue, form api } of the open tag form
     const load = async () => {
       list.innerHTML = '<p class="help">Loading…</p>'; tagOpen = null;
-      [cues, rels] = await Promise.all([
+      [cues, rels, storyDates] = await Promise.all([
         q(sb.from('cues').select('start_sec,end_sec,text').eq('tape_id', tapeSel.value).eq('lang', 'en').order('start_sec')),
         q(sb.from('relations').select('id,predicate,object_id,start_sec,note,on_watch').eq('subject_id', tapeSel.value).in('predicate', MOMENT_PREDICATES).order('start_sec')),
+        q(sb.from('story_dates').select('*').eq('tape_id', tapeSel.value).order('start_sec')),
       ]);
       draw();
     };
@@ -1217,7 +1218,9 @@
       const matches = c => !f || c.text.toLowerCase().includes(f) || tagsAt(c).some(r => S.entities.get(r.object_id).name.toLowerCase().includes(f));
       const filtersOn = typeSel.value !== '' || onlyOn.querySelector('input').checked;
       // every line (unless a tag filter is set, then only lines with matching tags), or tagged lines only
-      const lines = [...(byLine.has(BEFORE) ? [BEFORE] : []), ...cues].filter(c => (all && !filtersOn ? true : byLine.has(c)) && matches(c));
+      // story dates belong to the line they start in
+      const byDate = new Map(); storyDates.forEach(d => byDate.set(lineOf(d) || BEFORE, d)); dateAtNow = byDate;
+      const lines = [...(byLine.has(BEFORE) || byDate.has(BEFORE) ? [BEFORE] : []), ...cues].filter(c => (all && !filtersOn ? true : byLine.has(c) || (!filtersOn && byDate.has(c))) && matches(c));
       const shownTags = lines.flatMap(tagsAt);
       counts.innerHTML = `<span>${rels.filter(r => r.on_watch).length} of ${rels.length} moments on this tape are switched on · ${lines.length} line(s) shown</span>`;
       const bulk = (label, on) => { const b = el('button', 'ghost', label); b.type = 'button'; b.disabled = !shownTags.length;
@@ -1243,6 +1246,7 @@
           };
         }
         row.appendChild(line);
+        if (byDate.has(c)) row.appendChild(storyBadge(row, c, byDate.get(c)));
         const rs = tagsAt(c);
         if (rs.length) {
           const tags = el('div', 'mt-tags');
@@ -1252,6 +1256,13 @@
         list.appendChild(row);
         if (!c.synthetic) rows.push({ c, row });
       });
+    }
+    function storyBadge(row, c, d) {
+      const b = el('div', 'mt-story', `<span class="k">Story date from here</span> <b>${esc(d.date_text)}</b> <span class="mt-meta">${esc(d.date_from)}${d.note ? ' · ' + esc(d.note) : ''}</span>`);
+      const ed = el('button', 'linkbtn', 'Edit'); ed.type = 'button'; ed.onclick = () => openTagForm(row, c, '', 'date');
+      const rm = el('button', 'linkbtn', 'Remove'); rm.type = 'button';
+      rm.onclick = async () => { try { if (!confirm(`Remove the story date "${d.date_text}"?`)) return; await q(sb.from('story_dates').delete().eq('id', d.id).select('id')); storyDates = storyDates.filter(x => x.id !== d.id); toast('Removed'); draw(); } catch (err) { fail(err); } };
+      b.append(ed, rm); return b;
     }
     function tagChip(r) {
       const e = S.entities.get(r.object_id), rt = S.rtByKey[r.predicate];
@@ -1264,7 +1275,7 @@
     }
 
     // ----- the tag form under a line: a new item, an existing item, or a picture to show on screen -----
-    function openTagForm(row, c, picked) {
+    function openTagForm(row, c, picked, startMode) {
       list.querySelectorAll('.mt-tagform').forEach(n => n.remove());
       const tape = tapeById(tapeSel.value);
       const f = el('form', 'mt-tagform relform');
@@ -1276,7 +1287,7 @@
       // which moment predicates a tape can have with an item of this type
       const predChoices = type => MOMENT_PREDICATES.map(k => S.rtByKey[k]).filter(rt => allowed(rt.subject_types, 'tape') && (type === null || allowed(rt.object_types, type)));
       const seg = el('div', 'mt-seg');
-      const tabs = { new: 'New item', old: 'Already in the database', pic: 'Picture on screen' };
+      const tabs = { new: 'New item', old: 'Already in the database', pic: 'Picture on screen', date: 'Story date' };
       const tabBtn = {};
       Object.entries(tabs).forEach(([k, l]) => { const b = el('button', null, esc(l)); b.type = 'button'; b.onclick = () => setMode(k); tabBtn[k] = b; seg.appendChild(b); });
       f.appendChild(seg);
@@ -1375,18 +1386,33 @@
         ok.forEach(rt => { const o = el('option', null, esc(rt.label)); o.value = rt.key; predIn.appendChild(o); });
         predIn.value = st.mode === 'pic' && ok.some(rt => rt.key === want) ? want : ok.some(rt => rt.key === cur) ? cur : ok.some(rt => rt.key === want) ? want : ok.length ? ok[0].key : '';
       };
-      const boxes = { new: newBox, old: oldBox, pic: picBox };
+      // tab 4: the story date from this line on (where in Jonas's life the tape is), shown on the Watch map and year strip
+      const existingDate = dateAtNow.has(c) ? dateAtNow.get(c) : null;
+      const dateBox = el('div', 'grid');
+      const dtF = fieldInput({ key: 'date_text', label: 'Date as shown', input: 'text', required: true, help: 'e.g. "Summer 1942" or "End of 1929"' }, existingDate ? existingDate.date_text : picked === '' ? null : picked, []);
+      const dfF = fieldInput({ key: 'date_from', label: 'Date on the year strip', input: 'date', required: true, help: 'If only the year or month is known, take its first day' }, existingDate ? existingDate.date_from : null, []);
+      const dnF = fieldInput({ key: 'note', label: 'Note', input: 'text', wide: true }, existingDate ? existingDate.note : null, []);
+      const dateSugg = el('div', 'wide mt-sugg');
+      dateBox.append(dtF, dfF, dnF, dateSugg);
+      // dated events tagged on this line are one click away
+      const datedHere = lineTags.map(r => S.entities.get(r.object_id)).filter(x => x.date_text !== null && x.date_from !== null);
+      suggestButtons(dateSugg, datedHere.map(x => x.id), 'Use the date of:', id => { const x = S.entities.get(id); dtF.querySelector('input').value = x.date_text; dfF.querySelector('input').value = x.date_from; });
+      const momHead = el('h4', 'mt-sub', 'The moment');
+      const boxes = { new: newBox, old: oldBox, pic: picBox, date: dateBox };
       const setMode = m => {
         st.mode = m;
         Object.entries(boxes).forEach(([k, b]) => { b.hidden = k !== m; b.querySelectorAll('input, select, textarea').forEach(i => i.disabled = k !== m); tabBtn[k].classList.toggle('on', k === m); });
         // a picture stays up at least PICTURE_MIN_SEC unless the time was changed by hand
         if (m === 'pic' && t1In.value === fmtTime(c.end_sec) && +c.end_sec - +c.start_sec < PICTURE_MIN_SEC) t1In.value = fmtTime(+c.start_sec + PICTURE_MIN_SEC);
         if (m !== 'pic' && t1In.value === fmtTime(+c.start_sec + PICTURE_MIN_SEC)) t1In.value = fmtTime(c.end_sec);
-        ok.textContent = m === 'pic' ? 'Upload and show' : 'Tag it';
+        ok.textContent = m === 'pic' ? 'Upload and show' : m === 'date' ? 'Save story date' : 'Tag it';
+        // a story date is not a tag: the moment fields do not apply
+        momHead.hidden = momBox.hidden = m === 'date';
+        momBox.querySelectorAll('input, select, textarea').forEach(i => i.disabled = m === 'date');
         syncPred();
       };
 
-      f.append(newBox, oldBox, picBox, el('h4', 'mt-sub', 'The moment'), momBox);
+      f.append(newBox, oldBox, picBox, dateBox, momHead, momBox);
       const ra = el('div', 'row-actions');
       const ok = el('button', 'primary', 'Tag it'); ok.type = 'submit';
       const cancel = el('button', 'ghost', 'Cancel'); cancel.type = 'button'; cancel.onclick = close;
@@ -1396,6 +1422,17 @@
         const box = boxes[st.mode];
         const val = (k, inBox) => readInput((inBox ? box : momBox).querySelector(`[data-key="${k}"]`));
         const label = ok.textContent, done = [];
+        if (st.mode === 'date') {
+          try {
+            const row = { date_text: val('date_text', 1), date_from: val('date_from', 1), note: val('note', 1) };
+            ok.disabled = true;
+            if (existingDate) await q(sb.from('story_dates').update(row).eq('id', existingDate.id).select('id'));
+            else await q(sb.from('story_dates').insert({ ...row, tape_id: tape.id, start_sec: +c.start_sec }).select('id'));
+            storyDates = await q(sb.from('story_dates').select('*').eq('tape_id', tape.id).order('start_sec'));
+            draw(); toast(`Story date "${row.date_text}" from ${fmtTime(c.start_sec)}`);
+          } catch (err) { ok.disabled = false; fail(err); }
+          return;
+        }
         try {
           if (!predIn.value) throw new Error('This kind of item cannot be tagged as a moment in a tape');
           const s0 = t0.querySelector('input').value.trim(), s1 = t1In.value.trim();
@@ -1443,10 +1480,10 @@
         }
       };
       row.appendChild(f);
-      setMode('new'); suggestNew(); suggestShows();
+      setMode(startMode === undefined ? 'new' : startMode); suggestNew(); suggestShows();
       suggestButtons(oldSugg, similar(picked, notTape), 'Tagged on this line or similar:', pickOld);
       tagOpen = { cue: c, api: { setName: s => { [nameIn, picName].forEach(n => { n.value = s; n.dispatchEvent(new Event('input')); }); } } };
-      (picked === '' ? nameIn : typeIn).focus();
+      if (st.mode === 'new') (picked === '' ? nameIn : typeIn).focus();
     }
 
     // follow the video: highlight the line being said, scroll to it
