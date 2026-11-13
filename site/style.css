@@ -33,6 +33,7 @@ button { font: inherit; color: inherit; }
   padding: clamp(16px, 2.4vw, 32px) clamp(16px, 3vw, 40px) 40px; max-width: 1600px; margin: 0 auto; }
 @media (max-width: 980px) { .watch { grid-template-columns: 1fr; } }
 .left, .right { min-width: 0; }
+.watch > .yearstrip { grid-column: 1 / -1; }
 
 /* ---------- player ---------- */
 .player { position: relative; aspect-ratio: 16 / 9; border-radius: var(--r); overflow: hidden;
@@ -78,7 +79,7 @@ button { font: inherit; color: inherit; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
 
 /* ---------- transcript ---------- */
-.transcript { margin-top: 18px; max-height: 300px; overflow: auto; border-top: 1px solid var(--line);
+.transcript { max-height: 300px; overflow: auto; border-top: 1px solid var(--line);
   mask-image: linear-gradient(transparent 0, #000 24px, #000 calc(100% - 24px), transparent); }
 .transcript p { margin: 0; padding: 7px 4px 7px 14px; font-size: 14.5px; line-height: 1.5; color: var(--muted);
   border-left: 2px solid transparent; cursor: pointer; display: grid; grid-template-columns: 48px 1fr; gap: 8px; }
@@ -104,7 +105,7 @@ button { font: inherit; color: inherit; }
 .map-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--faint); font-size: 12px; }
 
 /* ---------- context ---------- */
-.context { margin-top: 20px; }
+
 .eyebrow { font: 600 10.5px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin: 18px 0 10px; }
 .now { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; min-height: 92px; }
 .empty { color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: 0; }
@@ -215,7 +216,7 @@ button { font: inherit; color: inherit; }
 .photos .credit { color: var(--faint); font-size: 11px; }
 
 /* year strip under the stage: dated events, and where the story is now; drag for other years */
-.yearstrip { margin-top: 10px; padding: 8px 0 6px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); position: relative; }
+.yearstrip { padding: 8px 0 6px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); position: relative; }
 .ys-view { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; cursor: grab; padding: 22px 14px 26px;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 .ys-view::-webkit-scrollbar { display: none; }
