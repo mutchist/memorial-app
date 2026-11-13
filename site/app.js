@@ -318,7 +318,7 @@
   // ---------- story date and year strip ----------
   // Story dates are set by hand in the admin (Tape moments): from that moment on, the story is at that date,
   // across tapes, until the next one. The strip shows every dated event; the marker shows the story date now.
-  const STRIP_TICK_YEARS = 5, STRIP_LABEL_YEARS = 10;
+  const STRIP_FOLLOW_PAUSE_MS = 8000;   // after a drag, the strip does not slide to the story date for this long
   // the database update 2026-11-12-story-dates.sql adds story_dates to each tape; until it is run there are none (said in the console)
   const hasStoryDates = TAPES.every(T => 'story_dates' in T);
   if (!hasStoryDates) console.error('Story dates are missing: run data-model/updates/2026-11-12-story-dates.sql in Supabase');
@@ -326,29 +326,49 @@
   function yearOf(iso) { const d = new Date(iso + 'T00:00:00Z'); const y = d.getUTCFullYear(); return y + (d - Date.UTC(y, 0, 1)) / (Date.UTC(y + 1, 0, 1) - Date.UTC(y, 0, 1)); }
   const dated = Object.values(E).filter(e => e.type === 'event' && e.date_from).map(e => ({ id: e.id, year: yearOf(e.date_from) }));
   const strip = $('#yearStrip');
-  // the range is set in config.js (storyYears); without it the strip is not shown
-  const [Y0, Y1] = Array.isArray(window.SITE_CONFIG.storyYears) ? window.SITE_CONFIG.storyYears : [null, null];
-  if (Y0 === null) console.error('config.js has no storyYears: the year strip is off');
-  const inRange = y => y >= Y0 && y < Y1 + 1;
-  const xOf = y => ((y - Y0) / (Y1 + 1 - Y0) * 100) + '%';
+  // the years in view at the start are set in config.js (storyYears, first and last year); drag for the others
+  const [V0, V1] = Array.isArray(window.SITE_CONFIG.storyYears) ? window.SITE_CONFIG.storyYears : [null, null];
+  if (V0 === null) console.error('config.js has no storyYears: the year strip is off');
+  const allYears = [...dated.map(d => d.year), ...storyDates.map(d => d.year)];
+  const F0 = Math.floor(Math.min(V0, ...allYears)), F1 = Math.floor(Math.max(V1, ...allYears)) + 1;   // whole years, end exclusive
+  const xOf = y => ((y - F0) / (F1 - F0) * 100) + '%';
   const stripMarks = {};
-  if (Y0 === null) strip.hidden = true;
+  const view = el('div', 'ys-view');
+  let lastDrag = -Infinity;
+  if (V0 === null) strip.hidden = true;
   else {
     const track = el('div', 'ys-track');
-    for (let y = Y0; y <= Y1; y += STRIP_TICK_YEARS) {
-      const t = el('span', 'ys-tick' + (y % STRIP_LABEL_YEARS === 0 ? ' major' : ''), y % STRIP_LABEL_YEARS === 0 ? `<b>${y}</b>` : null);
-      t.style.left = xOf(y); track.appendChild(t);
-    }
-    const before = dated.filter(d => d.year < Y0).length, after = dated.filter(d => d.year >= Y1 + 1).length;
-    if (before) track.appendChild(el('span', 'ys-out start', `← ${before} earlier`));
-    if (after) track.appendChild(el('span', 'ys-out end', `${after} later →`));
-    dated.filter(d => inRange(d.year)).forEach(d => {
+    track.style.width = ((F1 - F0) / (V1 + 1 - V0) * 100) + '%';
+    for (let y = F0; y <= F1; y++) { const t = el('span', 'ys-tick', `<b>${y}</b>`); t.style.left = xOf(y); track.appendChild(t); }
+    dated.forEach(d => {
       const e = E[d.id], b = el('button', 'ys-mark');
       b.style.left = xOf(d.year); b.title = `${e.name}${e.date_text ? ' · ' + e.date_text : ''}`; b.setAttribute('aria-label', b.title);
-      b.onclick = () => openEntity(d.id); stripMarks[d.id] = b; track.appendChild(b);
+      b.onclick = ev => { if (view.dataset.dragged === '1') { ev.preventDefault(); return; } openEntity(d.id); };
+      stripMarks[d.id] = b; track.appendChild(b);
     });
     const now = el('div', 'ys-now'); now.innerHTML = '<span></span>'; now.hidden = true; track.appendChild(now);
-    strip.appendChild(track); st.stripNow = now;
+    view.appendChild(track); strip.append(view, el('div', 'ys-hint', 'Drag for other years'));
+    st.stripNow = now;
+    // open on the configured years
+    requestAnimationFrame(() => { view.scrollLeft = (V0 - F0) / (F1 - F0) * track.offsetWidth; });
+    // drag with the mouse (touch scrolls natively); a drag is not a click on a mark
+    let drag = null;
+    view.addEventListener('pointerdown', ev => { if (ev.pointerType !== 'mouse') return; drag = { x: ev.clientX, left: view.scrollLeft }; view.dataset.dragged = '0'; });
+    window.addEventListener('pointermove', ev => {
+      if (drag === null) return;
+      const dx = ev.clientX - drag.x;
+      if (Math.abs(dx) > 4) { view.dataset.dragged = '1'; view.classList.add('dragging'); }
+      view.scrollLeft = drag.left - dx;
+    });
+    window.addEventListener('pointerup', () => { if (drag === null) return; drag = null; view.classList.remove('dragging'); lastDrag = performance.now(); });
+    view.addEventListener('scroll', () => { if (drag !== null || view.dataset.dragged === '1') lastDrag = performance.now(); }, { passive: true });
+    view.addEventListener('touchmove', () => { lastDrag = performance.now(); }, { passive: true });
+  }
+  // slide the strip so the story date is in view, unless someone just dragged it
+  function followStory(year) {
+    if (performance.now() - lastDrag < STRIP_FOLLOW_PAUSE_MS) return;
+    const track = view.firstChild, x = (year - F0) / (F1 - F0) * track.offsetWidth;
+    if (x < view.scrollLeft + 20 || x > view.scrollLeft + view.clientWidth - 20) view.scrollTo({ left: x - view.clientWidth / 2, behavior: 'smooth' });
   }
   function renderStory() {
     const G0 = g();
@@ -359,9 +379,9 @@
     st.storyKey = key;
     $('#when').textContent = $('#cWhen').textContent = cur ? cur.text : '';
     if (!cur && st.lastPlaceName === null) $('#cWhen').textContent = TAPES[st.ti].name;
-    if (Y0 === null) return;
-    st.stripNow.hidden = !cur || !inRange(cur.year);
-    if (cur) { st.stripNow.style.left = xOf(cur.year); st.stripNow.firstChild.textContent = cur.text; }
+    if (V0 === null) return;
+    st.stripNow.hidden = !cur;
+    if (cur) { st.stripNow.style.left = xOf(cur.year); st.stripNow.firstChild.textContent = cur.text; followStory(cur.year); }
     Object.entries(stripMarks).forEach(([id, b]) => b.classList.toggle('seen', seenIds.has(id)));
   }
 
