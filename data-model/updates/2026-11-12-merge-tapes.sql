@@ -9,7 +9,7 @@
 begin;
 
 create temp table merge_params on commit drop as
-select 'FILL IN'::text                  as youtube_id,    -- new video ID, the part after watch?v=
+select 'nBBQwgoklSI'::text              as youtube_id,    -- the joined video (first version, with the gaps)
        array[1787, 1825, 1869, 1850]::numeric[] as durations;  -- length of each tape's clip in the joined video, seconds (29:47, 30:25, 31:09, 30:50)
 
 do $$
