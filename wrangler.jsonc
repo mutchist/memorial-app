@@ -9,5 +9,7 @@
   "assets": {
     "directory": "./site",
     "not_found_handling": "404-page"
-  }
+  },
+  // Pull requests get a test copy (Cloudflare runs `wrangler preview` for them); nothing differs from the live site
+  "previews": {}
 }

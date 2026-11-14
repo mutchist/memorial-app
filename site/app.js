@@ -82,6 +82,9 @@
 
   // ---------- tapes + timeline ----------
   const tapesBox = $('#tapes');
+  // one joined video: no tape buttons, and moments are just a time
+  const at = (ti, t) => TAPES.length > 1 ? `Tape ${TAPES[ti].number} · ${fmt(t)}` : fmt(t);
+  if (TAPES.length < 2) tapesBox.hidden = true;
   TAPES.forEach((t, i) => {
     const b = el('button', '', `Tape ${t.number}`);
     b.onclick = () => seek(i, 0);
@@ -91,7 +94,7 @@
   const segs = TAPES.map((t, i) => {
     const seg = el('div', 'tl-seg'); seg.style.flex = t.duration;
     seg.appendChild(el('div', 'fill'));
-    seg.appendChild(el('span', 'lbl', `TAPE ${t.number}`));
+    if (TAPES.length > 1) seg.appendChild(el('span', 'lbl', `TAPE ${t.number}`));
     moments[i].forEach(m => {
       const e = E[m.id]; if (!e || !m.watch) return;
       const mk = el('i', 'tl-mk ' + typeClass(e.type));
@@ -120,7 +123,7 @@
     const p = posFromEvent(ev);
     const near = moments[p.ti].reduce((best, m) => { const d = Math.abs(m.t0 - p.t); return d < best.d ? { d, m } : best; }, { d: Infinity }).m;
     const px = near ? Math.abs(near.t0 - p.t) / TAPES[p.ti].duration * segs[p.ti].clientWidth : Infinity;
-    hover.textContent = `Tape ${TAPES[p.ti].number} · ${fmt(p.t)}` + (px < 5 ? ` · ${E[near.id].name}` : '');
+    hover.textContent = at(p.ti, p.t) + (px < 5 ? ` · ${E[near.id].name}` : '');
     const box = timeline.getBoundingClientRect();
     hover.style.left = Math.min(box.width - 80, Math.max(80, p.x - box.left)) + 'px';
     hover.style.display = 'block';
@@ -172,7 +175,7 @@
     $('#poster').style.display = hasVideo ? 'none' : 'flex';
     $('#yt').style.display = hasVideo ? 'block' : 'none';
     $('#speedWrap').style.display = hasVideo ? 'none' : '';
-    $('#posterTape').textContent = `Tape ${tape().number}`;
+    $('#posterTape').textContent = TAPES.length > 1 ? `Tape ${tape().number}` : tape().name;
   }
   function nextTape() { if (st.ti < TAPES.length - 1) seek(st.ti + 1, 0, true); else setPlaying(false); }
 
@@ -559,7 +562,7 @@
       h += `<h3>Connections</h3><ul class="facts">`;
       facts.forEach(f => {
         const r = f.r, src = r.src && E[r.src] && E[r.src].type === 'tape' && r.t0 != null
-          ? ` · <a onclick="__jump(${tapeIdx[r.src]}, ${+r.t0})">tape ${E[r.src].attrs.number} · ${fmt(r.t0)}</a>` : '';
+          ? ` · <a onclick="__jump(${tapeIdx[r.src]}, ${+r.t0})">${at(tapeIdx[r.src], r.t0)}</a>` : '';
         const meta = [r.role, r.date_text].filter(Boolean).map(esc).join(' · ');
         h += `<li><span class="lab">${esc(f.label)}</span> <a onclick="__open('${f.other}')">${esc(E[f.other].name)}</a>
           ${r.certainty === 'to_verify' ? '<span class="tag-verify">to verify</span>' : ''}
@@ -570,7 +573,7 @@
     if (ms.length) {
       ms.sort((a, b) => G(a.ti, a.t) - G(b.ti, b.t));
       h += `<h3>In the testimony</h3><div class="moments">`;
-      ms.forEach(m => h += `<button class="moment" onclick="__jump(${m.ti}, ${m.t})"><div class="tc">▶ Tape ${TAPES[m.ti].number} · ${fmt(m.t)}</div>${(q => q === null ? '' : `<div class="q">“${esc(q)}”</div>`)(cueTextAt(m.ti, m.t))}</button>`);
+      ms.forEach(m => h += `<button class="moment" onclick="__jump(${m.ti}, ${m.t})"><div class="tc">▶ ${at(m.ti, m.t)}</div>${(q => q === null ? '' : `<div class="q">“${esc(q)}”</div>`)(cueTextAt(m.ti, m.t))}</button>`);
       h += `</div>`;
     }
     body.innerHTML = h;

@@ -81,7 +81,7 @@
           ${meta ? `<div class="meta">${meta}</div>` : ''}</li>`;
       });
       moments.sort((a, b) => a.tape.number - b.tape.number || a.t - b.t).forEach(m => {
-        ul.innerHTML += `<li><span class="lab">shown in the testimony</span> <a href="index.html#tape=${m.tape.number}&t=${m.t}">Tape ${m.tape.number} · ${fmt(m.t)}</a>${m.note ? `<div class="meta">${esc(m.note)}</div>` : ''}</li>`;
+        ul.innerHTML += `<li><span class="lab">shown in the testimony</span> <a href="index.html#tape=${m.tape.number}&t=${m.t}">${D.tapes.length > 1 ? `Tape ${m.tape.number} · ` : ''}${fmt(m.t)}</a>${m.note ? `<div class="meta">${esc(m.note)}</div>` : ''}</li>`;
       });
       c.appendChild(ul); main.appendChild(c);
     }
