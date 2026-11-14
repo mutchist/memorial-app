@@ -7,7 +7,7 @@
 
 do $retime$
 declare
-  yt      text      := 'FILL IN';                       -- the new video's ID, the part after watch?v=
+  yt      text      := 'tPrsyLITNZk';                   -- the new video (shorter gaps)
   old_at  numeric[] := array[0, 1787, 3612, 5481];      -- where each tape started in the old video
   new_at  numeric[] := array[0, 1726, 3490, 5299];      -- where each tape starts in the new video
   new_len numeric   := 1726 + 1764 + 1809 + 1849;
