@@ -415,6 +415,17 @@
   }
 
   // ---------- entity drawer ----------
+  // web links added in the admin (table links); the database update 2026-11-14-site-links.sql adds them to site_data
+  if (!('links' in D)) console.error('Item links are missing: run data-model/updates/2026-11-14-site-links.sql in Supabase');
+  const LINKS = {}; ('links' in D ? D.links : []).forEach(l => (LINKS[l.entity] ||= []).push(l));
+  // for places with no such link of their own, a search on these sites (labels as in link_sites)
+  const PLACE_SEARCH = {
+    'Google Maps': (e, c) => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('address' in e.attrs ? e.attrs.address : c && !estimated.has(e.id) ? c[1] + ',' + c[0] : e.name),
+    'Wikipedia': e => 'https://en.wikipedia.org/w/index.php?search=' + encodeURIComponent(e.name.split(',')[0])
+  };
+  const imageOf = id => id in PAGES ? PAGES[id].find(pg => pg.mime.startsWith('image/')) : undefined;
+  const figure = (photoId, img, cls) => `<figure class="${cls}"><button type="button" onclick="__open('${photoId}')"><img src="${esc(fileUrl(img.path))}" alt="${esc('alt' in img ? img.alt : E[photoId].name)}" loading="lazy"></button>
+        <figcaption>${esc(E[photoId].name)}${'credit' in img ? ` · <span class="credit">${esc(img.credit)}</span>` : ''}</figcaption></figure>`;
   const drawer = $('#drawer'), scrim = $('#scrim'), body = $('#drawerBody');
   function closeDrawer() { drawer.classList.remove('show'); scrim.classList.remove('show'); drawer.setAttribute('aria-hidden', 'true'); }
   $('#close').onclick = closeDrawer; scrim.onclick = closeDrawer;
@@ -432,18 +443,21 @@
       facts.push({ label: forward ? RT[r.p].label : RT[r.p].inverse, other, r });
     });
     facts.sort((a, b) => nullsLast(a.r.order, b.r.order) || nullsLast(a.r.date_text, b.r.date_text));
-    let h = `<div class="k">${esc(kindLabel(e))}</div><h1>${esc(e.name)}</h1>`;
+    // a picture first: the photo itself, else the photos that show this item (photo --depicts--> item)
+    const own = e.type === 'photo' ? imageOf(id) : undefined;
+    const photos = R.filter(r => r.p === DEPICTS && r.o === id && imageOf(r.s) !== undefined).map(r => ({ id: r.s, img: imageOf(r.s) }));
+    let h = '';
+    if (own !== undefined) h += `<figure class="hero"><img src="${esc(fileUrl(own.path))}" alt="${esc('alt' in own ? own.alt : e.name)}">${'credit' in own ? `<figcaption><span class="credit">${esc(own.credit)}</span></figcaption>` : ''}</figure>`;
+    else if (photos.length) h += figure(photos[0].id, photos[0].img, 'hero');
+    h += `<div class="k">${esc(kindLabel(e))}</div><h1>${esc(e.name)}</h1>`;
     if (e.date_text) h += `<div class="date">${esc(e.date_text)}</div>`;
     if (e.summary) h += `<p class="sum">${esc(e.summary)}</p>`;
-    // photos that show this item (photo --depicts--> item), with their credit
-    const photos = R.filter(r => r.p === DEPICTS && r.o === id && r.s in PAGES).map(r => ({ r, img: PAGES[r.s].find(pg => pg.mime.startsWith('image/')) })).filter(x => x.img !== undefined);
-    if (photos.length && e.type !== 'photo') {
-      h += `<div class="photos">`;
-      photos.forEach(({ r, img }) => h += `<figure><button type="button" onclick="__open('${r.s}')"><img src="${esc(fileUrl(img.path))}" alt="${esc('alt' in img ? img.alt : E[r.s].name)}" loading="lazy"></button>
-        <figcaption>${esc(E[r.s].name)}${'credit' in img ? ` · <span class="credit">${esc(img.credit)}</span>` : ''}</figcaption></figure>`);
-      h += `</div>`;
-    }
-    if (id in PAGES) {
+    // web links: the ones added in the admin, and for places a search on the sites not linked yet
+    const links = (id in LINKS ? LINKS[id] : []).map(l => ({ label: l.label, url: l.url }));
+    if (e.type === 'place') Object.entries(PLACE_SEARCH).forEach(([label, url]) => { if (!links.some(l => l.label === label)) links.push({ label, url: url(e, coord[id]) }); });
+    if (links.length) h += `<div class="btns weblinks">${links.map(l => `<a class="btn" target="_blank" rel="noopener" href="${esc(l.url)}">${esc(l.label)} ↗</a>`).join('')}</div>`;
+    if (own === undefined && photos.length > 1) h += `<div class="photos">${photos.slice(1).map(p => figure(p.id, p.img, '')).join('')}</div>`;
+    if (id in PAGES && e.type !== 'photo') {
       h += `<div class="btns"><a class="btn" href="${esc(Site.documentLink(e))}">Read the document with its translation →</a></div>`;
       h += `<h3>Scans</h3><div class="scans">`;
       PAGES[id].forEach(p => {

@@ -558,7 +558,11 @@ select json_build_object(
     from entity_pages p
     join entities e on e.id = p.entity_id
     join media m on m.id = p.image_id
-    order by p.entity_id, p.position))
+    order by p.entity_id, p.position)),
+  -- web links added in the admin (Wikipedia, Google Maps, archives...), only for items visitors can see
+  'links', to_json(array(select json_build_object('entity', l.entity_id, 'label', l.label, 'url', l.url)
+    from links l join entities e on e.id = l.entity_id
+    order by l.entity_id, l.position))
 );
 $$;
 grant execute on function site_data() to anon, authenticated;
