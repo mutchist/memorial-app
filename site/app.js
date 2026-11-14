@@ -90,7 +90,7 @@
   });
 
   // ---------- state ----------
-  const st = { ti: 0, t: 0, playing: false, lastNowKey: '', lastPlace: null, yt: null, ytReady: false, picToMap: null, storyKey: null, stripNow: null };
+  const st = { ti: 0, t: 0, playing: false, lastNowKey: '', lastPlace: null, yt: null, ytReady: false, picToMap: null, storyKey: null, stripNow: null, stripDateG: undefined };
   const tape = () => TAPES[st.ti];
   const g = () => G(st.ti, st.t);
 
@@ -235,7 +235,13 @@
   // ---------- story date and year strip ----------
   // Story dates are set by hand in the admin (Tape moments): from that moment on, the story is at that date,
   // across tapes, until the next one. The strip shows every dated event; the marker shows the story date now.
-  const STRIP_FOLLOW_PAUSE_MS = 8000;   // after a drag, the strip does not slide to the story date for this long
+  const STRIP_FOLLOW_PAUSE_MS = 8000;
+  const STRIP_NEAR_EVENTS = 5;       // the strip zooms so that about this many dated events around the story date are in view
+  const STRIP_MIN_YEARS = 0.75;      // ... but never closer than this many years across
+  const STRIP_ZOOM_MS = 700;         // how long a zoom takes
+  const STRIP_MONTHS_PX = 160;       // month ticks show once a year is this wide
+  const STRIP_MONTH_NAMES_PX = 600;  // ... and their names once it is this wide
+  const MONTHS = [...Array(12)].map((_, m) => new Date(Date.UTC(2000, m, 1)).toLocaleString('en', { month: 'short', timeZone: 'UTC' }));   // after a drag, the strip does not slide to the story date for this long
   // the database update 2026-11-12-story-dates.sql adds story_dates to each tape; until it is run there are none (said in the console)
   const hasStoryDates = TAPES.every(T => 'story_dates' in T);
   if (!hasStoryDates) console.error('Story dates are missing: run data-model/updates/2026-11-12-story-dates.sql in Supabase');
@@ -251,12 +257,17 @@
   const xOf = y => ((y - F0) / (F1 - F0) * 100) + '%';
   const stripMarks = {};
   const view = el('div', 'ys-view');
+  const MAX_SPAN = V1 + 1 - V0;
+  let span = MAX_SPAN;   // years across the strip's view
   let lastDrag = -Infinity;
   if (V0 === null) strip.hidden = true;
   else {
     const track = el('div', 'ys-track');
-    track.style.width = ((F1 - F0) / (V1 + 1 - V0) * 100) + '%';
-    for (let y = F0; y <= F1; y++) { const t = el('span', 'ys-tick', `<b>${y}</b>`); t.style.left = xOf(y); track.appendChild(t); }
+    track.style.width = ((F1 - F0) / span * 100) + '%';
+    for (let y = F0; y <= F1; y++) {
+      const t = el('span', 'ys-tick', `<b>${y}</b>`); t.style.left = xOf(y); track.appendChild(t);
+      if (y < F1) for (let m = 1; m < 12; m++) { const n = el('span', 'ys-month', `<b>${MONTHS[m]}</b>`); n.style.left = xOf(y + m / 12); track.appendChild(n); }
+    }
     dated.forEach(d => {
       const e = E[d.id], b = el('button', 'ys-mark');
       b.style.left = xOf(d.year); b.title = `${e.name}${e.date_text ? ' · ' + e.date_text : ''}`; b.setAttribute('aria-label', b.title);
@@ -281,23 +292,57 @@
     view.addEventListener('scroll', () => { if (drag !== null || view.dataset.dragged === '1') lastDrag = performance.now(); }, { passive: true });
     view.addEventListener('touchmove', () => { lastDrag = performance.now(); }, { passive: true });
   }
-  // slide the strip so the story date is in view, unless someone just dragged it
+  const dragged = () => performance.now() - lastDrag < STRIP_FOLLOW_PAUSE_MS;
+  // years across the view around a year: wide enough for its STRIP_NEAR_EVENTS nearest dated events
+  function spanFor(year) {
+    const dist = dated.map(d => Math.abs(d.year - year)).sort((a, b) => a - b);
+    const far = dist.length ? dist[Math.min(STRIP_NEAR_EVENTS, dist.length) - 1] : MAX_SPAN;
+    return Math.min(MAX_SPAN, Math.max(STRIP_MIN_YEARS, far * 2.4));
+  }
+  let zoomAnim = null;
+  // zoom the strip to a span, centred on a year (animated); month ticks when zoomed in
+  function zoomTo(to, year) {
+    if (zoomAnim !== null) cancelAnimationFrame(zoomAnim);
+    const from = span, t0 = performance.now(), track = view.firstChild;
+    const step = now => {
+      const f = Math.min(1, (now - t0) / STRIP_ZOOM_MS), e = f * (2 - f);
+      span = from + (to - from) * e;
+      track.style.width = ((F1 - F0) / span * 100) + '%';
+      view.scrollLeft = (year - F0) / (F1 - F0) * track.offsetWidth - view.clientWidth / 2;
+      track.classList.toggle('months', track.offsetWidth / (F1 - F0) >= STRIP_MONTHS_PX);
+      track.classList.toggle('month-names', track.offsetWidth / (F1 - F0) >= STRIP_MONTH_NAMES_PX);
+      zoomAnim = f < 1 ? requestAnimationFrame(step) : null;
+    };
+    zoomAnim = requestAnimationFrame(step);
+  }
+  // keep the story's place on the strip in view, unless someone just dragged it
   function followStory(year) {
-    if (performance.now() - lastDrag < STRIP_FOLLOW_PAUSE_MS) return;
+    if (dragged() || zoomAnim !== null) return;
     const track = view.firstChild, x = (year - F0) / (F1 - F0) * track.offsetWidth;
-    if (x < view.scrollLeft + 20 || x > view.scrollLeft + view.clientWidth - 20) view.scrollTo({ left: x - view.clientWidth / 2, behavior: 'smooth' });
+    if (x < view.scrollLeft + view.clientWidth * .2 || x > view.scrollLeft + view.clientWidth * .8) view.scrollTo({ left: x - view.clientWidth / 2, behavior: 'smooth' });
+  }
+  // where the story is on the strip: the story date, gliding towards the next one as the video plays
+  function storyYearAt(G0) {
+    let i = -1; storyDates.forEach((d, k) => { if (d.g <= G0) i = k; });
+    if (i < 0) return null;
+    const cur = storyDates[i], next = storyDates[i + 1];
+    if (next === undefined || next.year <= cur.year) return cur.year;
+    return cur.year + (G0 - cur.g) / (next.g - cur.g) * (next.year - cur.year);
   }
   function renderStory() {
     const G0 = g();
     let cur = null; for (const d of storyDates) { if (d.g <= G0) cur = d; else break; }
     const seenIds = new Set(); for (const m of allMoments) { if (m.g > G0) break; seenIds.add(m.id); }
+    const year = V0 === null ? null : storyYearAt(G0);
+    if (year !== null) { st.stripNow.style.left = xOf(year); followStory(year); }
     const key = (cur ? cur.g : '-') + '|' + seenIds.size;
     if (key === st.storyKey) return;
-    st.storyKey = key;
+    const dateG = cur ? cur.g : null, newDate = dateG !== st.stripDateG;
+    st.storyKey = key; st.stripDateG = dateG;
     $('#when').textContent = cur ? cur.text : '';
     if (V0 === null) return;
     st.stripNow.hidden = !cur;
-    if (cur) { st.stripNow.style.left = xOf(cur.year); st.stripNow.firstChild.textContent = cur.text; followStory(cur.year); }
+    if (cur) { st.stripNow.firstChild.textContent = cur.text; if (newDate && !dragged()) zoomTo(spanFor(year), year); }
     Object.entries(stripMarks).forEach(([id, b]) => b.classList.toggle('seen', seenIds.has(id)));
   }
 
