@@ -6,6 +6,10 @@
   const { $, el, esc, fmt, nullsLast, fileUrl, showError, loadData } = Site;
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
+  // config.js sets where the map opens (mapHome: { center: [lng, lat], zoom })
+  const HOME = window.SITE_CONFIG.mapHome;
+  if (!HOME || !Array.isArray(HOME.center) || typeof HOME.zoom !== 'number') return showError('The map is not set up', 'config.js needs mapHome: { center: [lng, lat], zoom }.');
+
   loadData().then(D => {
     if (!D.tapes.length) return showError('Nothing is published yet', 'Publish the tapes and their moments in the admin to show them here.');
     start(D);
@@ -76,161 +80,72 @@
   });
 
   // ---------- state ----------
-  const st = { ti: 0, t: 0, playing: false, speed: 16, lastCue: -1, lastNowKey: '', lastPlace: null, yt: null, ytReady: false, picToMap: null, storyKey: null, lastPlaceName: null, stripNow: null };
+  const st = { ti: 0, t: 0, playing: false, lastNowKey: '', lastPlace: null, yt: null, ytReady: false, picToMap: null, storyKey: null, stripNow: null };
   const tape = () => TAPES[st.ti];
   const g = () => G(st.ti, st.t);
 
-  // ---------- tapes + timeline ----------
-  const tapesBox = $('#tapes');
-  // one joined video: no tape buttons, and moments are just a time
+  // one joined video: moments are just a time
   const at = (ti, t) => TAPES.length > 1 ? `Tape ${TAPES[ti].number} · ${fmt(t)}` : fmt(t);
-  if (TAPES.length < 2) tapesBox.hidden = true;
-  TAPES.forEach((t, i) => {
-    const b = el('button', '', `Tape ${t.number}`);
-    b.onclick = () => seek(i, 0);
-    tapesBox.appendChild(b);
-  });
-  const track = $('#track');
-  const segs = TAPES.map((t, i) => {
-    const seg = el('div', 'tl-seg'); seg.style.flex = t.duration;
-    seg.appendChild(el('div', 'fill'));
-    if (TAPES.length > 1) seg.appendChild(el('span', 'lbl', `TAPE ${t.number}`));
-    moments[i].forEach(m => {
-      const e = E[m.id]; if (!e || !m.watch) return;
-      const mk = el('i', 'tl-mk ' + typeClass(e.type));
-      mk.style.left = (m.t0 / t.duration * 100) + '%';
-      seg.appendChild(mk);
-    });
-    track.appendChild(seg);
-    return seg;
-  });
-  // legend: one entry per legend label among the types on the timeline
-  const shownTypes = new Set(allMoments.filter(m => m.watch).map(m => E[m.id].type)), legendSeen = new Set();
-  D.entity_types.forEach(t => {
-    if (!shownTypes.has(t.key) || legendSeen.has(t.legend)) return; legendSeen.add(t.legend);
-    $('#legend').appendChild(el('span', '', `<i class="dot ${typeClass(t.key)}"></i>${esc(t.legend)}`));
-  });
-  const timeline = $('#timeline'), hover = $('#hover');
-  const posFromEvent = ev => {
-    const x = ev.clientX;
-    for (let i = 0; i < segs.length; i++) {
-      const r = segs[i].getBoundingClientRect();
-      if (x <= r.right + 2 || i === segs.length - 1) return { ti: i, t: Math.min(1, Math.max(0, (x - r.left) / r.width)) * TAPES[i].duration, x };
-    }
-  };
-  timeline.addEventListener('click', ev => { const p = posFromEvent(ev); seek(p.ti, p.t); });
-  timeline.addEventListener('mousemove', ev => {
-    const p = posFromEvent(ev);
-    const near = moments[p.ti].reduce((best, m) => { const d = Math.abs(m.t0 - p.t); return d < best.d ? { d, m } : best; }, { d: Infinity }).m;
-    const px = near ? Math.abs(near.t0 - p.t) / TAPES[p.ti].duration * segs[p.ti].clientWidth : Infinity;
-    hover.textContent = at(p.ti, p.t) + (px < 5 ? ` · ${E[near.id].name}` : '');
-    const box = timeline.getBoundingClientRect();
-    hover.style.left = Math.min(box.width - 80, Math.max(80, p.x - box.left)) + 'px';
-    hover.style.display = 'block';
-  });
-  timeline.addEventListener('mouseleave', () => hover.style.display = 'none');
-
-  // ---------- transcript ----------
-  const trBox = $('#transcript');
-  let trNodes = [];
-  function buildTranscript() {
-    trBox.innerHTML = '';
-    trNodes = tape().cues.map(([s, , text], i) => {
-      const p = el('p', '', `<time>${fmt(s)}</time><span>${esc(text)}</span>`);
-      p.onclick = () => seek(st.ti, +s + 0.01);
-      trBox.appendChild(p);
-      return p;
-    });
-    st.lastCue = -1;
-  }
   const cueAt = (cues, t) => { let lo = 0, hi = cues.length - 1, ans = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (+cues[m][0] <= t) { ans = m; lo = m + 1; } else hi = m - 1; } return ans; };
 
-  // ---------- player ----------
-  const playBtn = $('#play'), icon = $('#playIcon');
-  const ICON_PLAY = '<path d="M8 5v14l11-7z"/>', ICON_PAUSE = '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>';
-  function setPlaying(p) {
-    st.playing = p; icon.innerHTML = p ? ICON_PAUSE : ICON_PLAY; playBtn.setAttribute('aria-label', p ? 'Pause' : 'Play');
-    if (st.ytReady && tape().youtube_id) p ? st.yt.playVideo() : st.yt.pauseVideo();
-  }
-  playBtn.onclick = () => setPlaying(!st.playing);
-  $('#speed').onchange = e => st.speed = +e.target.value;
+  // ---------- player: the YouTube player is the only control; the page follows it ----------
+  const ytOn = () => st.ytReady && !!tape().youtube_id;
+  function play() { if (ytOn()) st.yt.playVideo(); }
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeDrawer();
-    if (e.code === 'Space' && !['SELECT', 'INPUT', 'BUTTON', 'TEXTAREA'].includes(document.activeElement.tagName)) { e.preventDefault(); setPlaying(!st.playing); }
+    if (e.code === 'Space' && ytOn() && !['SELECT', 'INPUT', 'BUTTON', 'TEXTAREA', 'A'].includes(document.activeElement.tagName)) {
+      e.preventDefault(); st.playing ? st.yt.pauseVideo() : st.yt.playVideo();
+    }
   });
-
-  // YouTube, used only for tapes that have a youtube_id
+  TAPES.forEach(t => { if (!t.youtube_id) console.error(`"${t.name}" has no YouTube video set (admin > the tape > youtube_id)`); });
+  const posterNote = msg => { $('#posterNote').textContent = msg; };
   if (TAPES.some(t => t.youtube_id)) {
-    const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
+    const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api';
+    s.onerror = () => { console.error('The YouTube player could not load'); posterNote('The video could not load. Check the connection and reload the page.'); };
+    document.head.appendChild(s);
     window.onYouTubeIframeAPIReady = () => {
-      const opts = { playerVars: { rel: 0, modestbranding: 1, cc_load_policy: 0 } };
+      const opts = { playerVars: { rel: 0, modestbranding: 1, cc_load_policy: 1 } };
       if (tape().youtube_id) opts.videoId = tape().youtube_id;
       st.yt = new YT.Player('yt', { ...opts,
         events: { onReady: () => { st.ytReady = true; syncPoster(); },
-                  onStateChange: e => { if (e.data === 1 && !st.playing) setPlaying(true); if (e.data === 2 && st.playing) setPlaying(false); if (e.data === 0) nextTape(); } } });
+                  onError: e => { console.error('YouTube player error', e.data); posterNote('The video could not be played here.'); },
+                  onStateChange: e => { st.playing = e.data === 1; if (e.data === 0) nextTape(); } } });
     };
-  }
+  } else posterNote('No video is set for the testimony yet.');
   function syncPoster() {
-    const hasVideo = !!(tape().youtube_id && st.ytReady);
+    const hasVideo = ytOn();
     $('#poster').style.display = hasVideo ? 'none' : 'flex';
     $('#yt').style.display = hasVideo ? 'block' : 'none';
-    $('#speedWrap').style.display = hasVideo ? 'none' : '';
-    $('#posterTape').textContent = TAPES.length > 1 ? `Tape ${tape().number}` : tape().name;
+    $('#posterTape').textContent = tape().name;
   }
-  function nextTape() { if (st.ti < TAPES.length - 1) seek(st.ti + 1, 0, true); else setPlaying(false); }
+  function nextTape() { if (st.ti < TAPES.length - 1) { seek(st.ti + 1, 0); play(); } }
 
-  function seek(ti, t, keepPlaying) {
+  function seek(ti, t) {
     const changed = ti !== st.ti;
     const jump = Math.abs(G(ti, t) - g()) > 8;
     st.ti = ti; st.t = t;
-    if (changed) { buildTranscript(); syncPoster(); }
-    if (st.ytReady && tape().youtube_id) {
-      if (changed) st.yt.loadVideoById(tape().youtube_id, t); else st.yt.seekTo(t, true);
-      if (!keepPlaying && !st.playing) st.yt.pauseVideo();
-    }
+    if (changed) syncPoster();
+    if (ytOn()) { if (changed) st.yt.cueVideoById(tape().youtube_id, t); else st.yt.seekTo(t, true); }
     render(jump);
   }
 
-  let lastTick = performance.now();
+  // follow the video while it plays
   setInterval(() => {
-    const now = performance.now(), dt = (now - lastTick) / 1000; lastTick = now;
-    if (!st.playing) return;
-    if (st.ytReady && tape().youtube_id) st.t = st.yt.getCurrentTime();
-    else { st.t += dt * st.speed; if (st.t >= tape().duration) return nextTape(); }
+    if (!st.playing || !ytOn()) return;
+    st.t = st.yt.getCurrentTime();
     render(false);
   }, 200);
 
-  // ---------- render ----------
-  const caption = $('#caption');
   function render(jump) {
-    const T = tape(), t = st.t;
-    $('#clock').textContent = fmt(t); $('#dur').textContent = fmt(T.duration);
-    [...tapesBox.children].forEach((b, i) => b.classList.toggle('on', i === st.ti));
-    segs.forEach((s, i) => s.firstChild.style.width = i < st.ti ? '100%' : i > st.ti ? '0' : (t / T.duration * 100) + '%');
-    const r = segs[st.ti].getBoundingClientRect(), box = timeline.getBoundingClientRect();
-    $('#head').style.left = (r.left - box.left + t / T.duration * r.width) + 'px';
-
-    const ci = cueAt(T.cues, t);
-    const cue = T.cues[ci];
-    const showCue = cue && t <= +cue[1] + 2;
-    if (ci !== st.lastCue) {
-      trNodes.forEach((n, i) => n.classList.toggle('act', i === ci));
-      if (trNodes[ci]) trBox.scrollTo({ top: trNodes[ci].offsetTop - trBox.offsetTop - trBox.clientHeight / 3, behavior: jump ? 'auto' : 'smooth' });
-      st.lastCue = ci;
-    }
-    caption.textContent = showCue ? cue[2] : '';
-    renderStage(t);
-
+    renderStage(st.t);
     renderContext();
     renderStory();
     renderMap(jump);
   }
 
-  // ---------- stage (right panel): a picture, else the map when it has something to show, else the chapter card ----------
+  // ---------- stage (right panel): a picture while one is on screen, else the map ----------
   const AREA_KEY = 'area';   // place attrs field with its outline (GeoJSON Polygon/MultiPolygon)
-  const MAP_HOLD = 60;   // seconds the map stays after a place is mentioned or a route leg starts drawing
-  const stage = $('#stage'), stagePic = $('#stagePic'), pinBtn = $('#pinMap');
-  pinBtn.onclick = () => { st.pinMap = !st.pinMap; pinBtn.setAttribute('aria-pressed', String(st.pinMap)); renderStage(st.t); };
+  const stage = $('#stage'), stagePic = $('#stagePic');
   let picNow = null;
   // a photo that shows a place with a pin gets a small map of that place in its corner
   const DEPICTS = 'depicts';
@@ -267,23 +182,22 @@
     const p = pictures[st.ti].find(x => t >= x.t0 && t <= x.t1);
     const pnow = p === undefined ? null : p;
     if (pnow !== picNow) { picNow = pnow; st.picToMap = null; if (pnow !== null) showPicture(pnow); }
-    const G0 = g(), recent = x => x.g <= G0 && G0 - x.g <= MAP_HOLD;
-    const mapWanted = st.pinMap || legAnimations.some(recent) || allMoments.some(m => recent(m) && E[m.id].type === 'place' && m.id in coord);
     // the picture wins, unless its small map was clicked (then the big map shows until the picture's time is over)
-    const mode = picNow !== null && st.picToMap !== picNow ? 'pic' : picNow !== null || mapWanted ? 'map' : 'chapter';
-    if (mode !== st.stageMode) { st.stageMode = mode; stage.classList.remove('mode-pic', 'mode-map', 'mode-chapter'); stage.classList.add('mode-' + mode); }
+    const mode = picNow !== null && st.picToMap !== picNow ? 'pic' : 'map';
+    if (mode !== st.stageMode) { st.stageMode = mode; stage.classList.remove('mode-pic', 'mode-map'); stage.classList.add('mode-' + mode); }
   }
 
-  // ---------- context cards ----------
-  const nowBox = $('#now'), trailBox = $('#trail');
-  $('.context').hidden = !allMoments.some(m => m.watch);
+  // ---------- now ticker: the items mentioned in the last HOLD seconds, newest first ----------
+  const tickerBox = $('#tickerItems');
+  $('#ticker').hidden = !allMoments.some(m => m.watch);
   const HOLD = 45;   // seconds a mention stays "now"
-  function card(m) {
+  const TICKER_MAX = 6;
+  function tickerItem(m) {
     const e = E[m.id];
-    const c = el('button', 'card');
+    const c = el('button', 'tk-item', `<i class="dot ${typeClass(e.type)}"></i>${esc(e.name)}<span class="k">${esc(kindLabel(e))}${e.date_text && e.type === 'event' ? ' · ' + esc(e.date_text) : ''}</span>`);
+    c.type = 'button'; c.dataset.key = m.id + '@' + m.g;
     const sub = [m.note, e.summary].find(x => x && x !== e.name);
-    c.innerHTML = `<span class="bar ${typeClass(e.type)}"></span><span><span class="k">${esc(kindLabel(e))}${e.date_text && e.type === 'event' ? ' · ' + esc(e.date_text) : ''}</span>
-      <div class="n">${esc(e.name)}</div>${sub ? `<div class="s">${esc(sub)}</div>` : ''}</span>`;
+    if (sub) c.title = sub;
     c.onclick = () => openEntity(m.id);
     return c;
   }
@@ -292,29 +206,22 @@
     const past = [];
     for (const m of allMoments) { if (m.g > G0) break; past.push(m); }
     const nowList = [], seen = new Set();
-    // cards: only the moments switched on for the Watch page (admin > Tape moments)
-    for (let i = past.length - 1; i >= 0 && nowList.length < 4; i--) {
+    // only the moments switched on for the Watch page (admin > Tape moments)
+    for (let i = past.length - 1; i >= 0 && nowList.length < TICKER_MAX; i--) {
       const m = past[i]; if (G0 - m.g > HOLD) break;
       if (m.watch && !seen.has(m.id)) { seen.add(m.id); nowList.push(m); }
     }
-    const key = nowList.map(m => m.id + m.g).join('|') + '#' + past.length;
+    const key = nowList.map(m => m.id + '@' + m.g).join('|') + '#' + past.length;
     if (key === st.lastNowKey) return;
     st.lastNowKey = key;
-    nowBox.innerHTML = '';
-    if (!nowList.length) nowBox.appendChild(el('p', 'empty', past.some(m => m.watch) ? 'Listening…' : 'Press play. Places, people and documents appear here as Jonas mentions them.'));
-    nowList.reverse().forEach(m => nowBox.appendChild(card(m)));
-    trailBox.innerHTML = '';
-    const trail = [];
-    for (let i = past.length - 1; i >= 0 && trail.length < 16; i--) {
-      const m = past[i]; if (!m.watch || seen.has(m.id)) continue; seen.add(m.id); trail.push(m);
-    }
-    trail.forEach(m => { const e = E[m.id]; const c = el('button', 'chip', `<i class="dot ${typeClass(e.type)}"></i>${esc(e.name)}`); c.onclick = () => openEntity(m.id); trailBox.appendChild(c); });
-    if (!trail.length) trailBox.appendChild(el('p', 'empty', '—'));
+    // keep the items already showing (no re-animation); new ones slide in on the left
+    const have = {}; [...tickerBox.querySelectorAll('.tk-item')].forEach(n => have[n.dataset.key] = n);
+    tickerBox.replaceChildren(...nowList.map(m => have[m.id + '@' + m.g] || tickerItem(m)));
+    if (!nowList.length) tickerBox.appendChild(el('span', 'tk-empty', past.some(m => m.watch) ? 'Listening…' : 'Places, people and documents appear here as Jonas mentions them.'));
 
     // place for the map overlay (the date comes from the story dates, renderStory)
     const lastPlace = [...past].reverse().find(m => E[m.id].type === 'place');
-    $('#where').textContent = $('#cWhere').textContent = lastPlace ? E[lastPlace.id].name : '';
-    st.lastPlaceName = lastPlace ? E[lastPlace.id].name : null;
+    $('#where').textContent = lastPlace ? E[lastPlace.id].name : '';
     st.storyKey = null; renderStory();
   }
 
@@ -380,8 +287,7 @@
     const key = (cur ? cur.g : '-') + '|' + seenIds.size;
     if (key === st.storyKey) return;
     st.storyKey = key;
-    $('#when').textContent = $('#cWhen').textContent = cur ? cur.text : '';
-    if (!cur && st.lastPlaceName === null) $('#cWhen').textContent = TAPES[st.ti].name;
+    $('#when').textContent = cur ? cur.text : '';
     if (V0 === null) return;
     st.stripNow.hidden = !cur;
     if (cur) { st.stripNow.style.left = xOf(cur.year); st.stripNow.firstChild.textContent = cur.text; followStory(cur.year); }
@@ -393,7 +299,7 @@
   const INK = css('--ink'), BG = css('--bg'), ACCENT = css('--accent');
   const OFFLINE_STYLE = { version: 8, sources: {}, layers: [{ id: 'bg', type: 'background', paint: { 'background-color': css('--surface') } }] };
   Site.rtlLabels();
-  const map = new maplibregl.Map({ container: 'map', style: REMOTE_STYLE, center: [6.5, 50.5], zoom: 4.2, attributionControl: { compact: true }, cooperativeGestures: false });
+  const map = new maplibregl.Map({ container: 'map', style: REMOTE_STYLE, center: HOME.center, zoom: HOME.zoom, attributionControl: { compact: true }, cooperativeGestures: false });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
   let mapReady = false, usedFallback = false;
   const failTimer = setTimeout(() => { if (!mapReady) useFallback(); }, 7000);
@@ -494,6 +400,8 @@
     map.getSource('current').setData({ type: 'FeatureCollection', features: current ? [feat(current.id)] : [] });
     const area = current && AREA_KEY in E[current.id].attrs ? E[current.id].attrs[AREA_KEY] : null;
     map.getSource('area').setData({ type: 'FeatureCollection', features: area ? [{ type: 'Feature', properties: {}, geometry: area }] : [] });
+    // before any place is mentioned (e.g. at the start), the map shows the home view (config.js mapHome)
+    if (visited.size === 0 && st.lastPlace !== null) { st.lastPlace = null; map.flyTo({ ...HOME, speed: jump ? 3 : 0.8, essential: true }); }
     if (current && current.id !== st.lastPlace) {
       st.lastPlace = current.id;
       const zoom = option(E[current.id], 'kind').display.zoom;
@@ -510,7 +418,7 @@
   function closeDrawer() { drawer.classList.remove('show'); scrim.classList.remove('show'); drawer.setAttribute('aria-hidden', 'true'); }
   $('#close').onclick = closeDrawer; scrim.onclick = closeDrawer;
   const cueTextAt = (ti, t) => { const i = cueAt(TAPES[ti].cues, t + 0.01); return i < 0 ? null : TAPES[ti].cues[i][2]; };
-  window.__jump = (ti, t) => { closeDrawer(); seek(ti, Math.max(0, t - 1)); setPlaying(true); };
+  window.__jump = (ti, t) => { closeDrawer(); seek(ti, Math.max(0, t - 1)); play(); };
   window.__open = id => openEntity(id);
 
   function openEntity(id) {
@@ -582,7 +490,7 @@
   }
 
   // ---------- start ----------
-  buildTranscript(); syncPoster(); render(true);
+  syncPoster(); render(true);
   window.addEventListener('resize', () => render(true));
   window.__state = st; window.__seek = seek;   // for testing
   // links from other pages: #open=<slug> opens an item, #tape=<number>&t=<seconds> goes to a moment

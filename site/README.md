@@ -10,8 +10,11 @@ Open `index.html` in a browser, or host the folder on any static host.
 - If nothing is published yet, the page says so.
 - Labels, colours, route line styles and map zoom per kind of place come from
   the database tables `entity_types` and `attr_options`, not from this code.
-- Once a tape's YouTube ID is set, the real video plays and drives everything.
-  Until then the play button runs the subtitles on their own at a preview speed.
+- The YouTube player is the only control: the map, the "Now" ticker and the
+  year strip follow it. Subtitles come from YouTube's own captions (on by
+  default). The full transcript is only in the admin (Tape moments).
+- `config.js`: `storyYears` (years in view on the year strip) and `mapHome`
+  (where the map opens before any place is mentioned).
 - Map: MapLibre (in `vendor/`) with OpenFreeMap tiles. No account or key needed.
 - `data/data.js` is no longer used and can be deleted.
 

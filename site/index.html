@@ -28,36 +28,16 @@
     <div class="player" id="player">
       <div class="poster" id="poster">
         <div class="poster-inner">
-          <div class="poster-tape" id="posterTape">Tape 1</div>
-          <div class="poster-note">The video appears here once it is public on YouTube.<br>Until then, press play to follow the testimony through its subtitles.</div>
+          <div class="poster-tape" id="posterTape"></div>
+          <div class="poster-note" id="posterNote">Loading the video…</div>
         </div>
       </div>
       <div id="yt"></div>
     </div>
-
-    <div class="caption" id="caption" aria-live="polite"></div>
-
-    <div class="controls">
-      <button class="play" id="play" aria-label="Play">
-        <svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <div class="clock"><span id="clock">0:00</span><span class="dim"> / <span id="dur">0:00</span></span></div>
-      <div class="tapes" id="tapes"></div>
-      <label class="speed" id="speedWrap" title="Preview speed (no video yet)">
-        <select id="speed"><option value="1">1×</option><option value="4">4×</option><option value="16" selected>16×</option></select>
-      </label>
-    </div>
-
-    <div class="timeline" id="timeline" aria-label="Timeline of the testimony">
-      <div class="tl-track" id="track"></div>
-      <div class="tl-head" id="head"></div>
-      <div class="tl-hover" id="hover"></div>
-    </div>
-    <div class="legend" id="legend"></div>
   </section>
 
   <section class="right">
-    <div class="mapwrap stage mode-chapter" id="stage">
+    <div class="mapwrap stage mode-map" id="stage">
       <div class="stage-layer stage-map">
         <div id="map"></div>
         <div class="map-overlay">
@@ -66,29 +46,16 @@
         </div>
         <div class="map-legend" id="mapLegend"></div>
       </div>
-      <div class="stage-layer stage-chapter" aria-live="polite">
-        <div class="c-when" id="cWhen"></div>
-        <div class="c-where" id="cWhere"></div>
-      </div>
       <figure class="stage-layer stage-pic" id="stagePic"></figure>
-      <button class="pin" id="pinMap" type="button" aria-pressed="false" title="Keep the map on screen">Map</button>
     </div>
   </section>
+
+  <div class="ticker" id="ticker" aria-label="Mentioned now" aria-live="polite">
+    <span class="tk-label">Now</span>
+    <div class="tk-items" id="tickerItems"></div>
+  </div>
 
   <div class="yearstrip" id="yearStrip" aria-label="Years in the story: events, and where the story is now"></div>
-
-  <section class="left lower">
-    <div class="transcript" id="transcript"></div>
-  </section>
-
-  <section class="right lower">
-    <div class="context">
-      <h2 class="eyebrow">Now</h2>
-      <div class="now" id="now"><p class="empty">Press play. Places, people and documents appear here as Jonas mentions them.</p></div>
-      <h2 class="eyebrow">Earlier</h2>
-      <div class="trail" id="trail"></div>
-    </div>
-  </section>
 </main>
 
 <aside class="drawer" id="drawer" aria-hidden="true">
