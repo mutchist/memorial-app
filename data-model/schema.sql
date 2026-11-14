@@ -404,7 +404,8 @@ insert into link_sites (label, url_prefix, position) values
  ('Joods Monument',    'https://www.joodsmonument.nl/', 3),
  ('Yad Vashem',        'https://collections.yadvashem.org/', 4),
  ('Wikimedia Commons', 'https://commons.wikimedia.org/wiki/', 5),
- ('Other',             null, 6);
+ ('Google Maps',       'https://www.google.com/maps/', 6),
+ ('Other',             null, 7);
 
 -- =====================================================================
 -- Admin vocabulary rows
