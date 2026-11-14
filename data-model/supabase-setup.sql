@@ -123,12 +123,13 @@ create table relations (
   -- evidence: a moment in a tape and/or a document
   source_id   uuid references entities(id) on delete set null,
   start_sec   numeric(8,3),
-  end_sec     numeric(8,3),
+  end_sec     numeric(8,3),                    -- tape moments: on screen until (null = the default, see site/common.js schedule)
   note        text,
   certainty   certainty not null default 'to_verify',
   status      publish_status not null default 'draft',
   origin      text not null default 'manual',  -- 'manual' / 'batch:tapes' / ...
-  on_watch    boolean not null default false,  -- tape moment shown as a card on the Watch page (chosen in the admin)
+  on_watch    boolean not null default false,  -- tape moment shown in the Watch page's Now ticker (chosen in the admin)
+  on_map      boolean not null default true,   -- tape moment of a place: shown on the Watch map (chosen in the admin)
   created_at  timestamptz not null default now(),
   check (subject_id <> object_id),
   check (end_sec is null or (start_sec is not null and end_sec > start_sec)),
@@ -532,7 +533,7 @@ select json_build_object(
   'relations', to_json(array(select json_strip_nulls(json_build_object(
       's', r.subject_id, 'p', r.predicate, 'o', r.object_id, 'role', r.role, 'order', r.sort_order,
       'date_text', r.date_text, 'src', src.id, 't0', r.start_sec, 't1', r.end_sec,
-      'note', r.note, 'certainty', r.certainty, 'status', r.status, 'watch', r.on_watch))
+      'note', r.note, 'certainty', r.certainty, 'status', r.status, 'watch', r.on_watch, 'map', r.on_map))
     from relations r
     join entities s on s.id = r.subject_id
     join entities o on o.id = r.object_id

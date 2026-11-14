@@ -1123,6 +1123,14 @@
   const PICTURE_MIN_SEC = 8;                                         // preset: a picture stays up at least this long
   const DEPICTS = 'depicts';                                         // photo -> what it shows
   const PLAYER_TICK_MS = 400;                                        // how often the current line is checked
+  const SCHED_WINDOW_SEC = 240;                                      // the schedule under the player shows this much of the tape
+  const SCHED_LEAD_SEC = 60;                                         // ... starting this long before the video time
+  const SCHED_SNAP_SEC = 0.5;                                        // dragged end times are rounded to this
+  // where a tag shows on the Watch page: [value, label, on_map, on_watch]; places can be on the map, everything in the Now ticker
+  const SHOWN_PLACE = [['both', 'On the map and in Now', true, true], ['map', 'On the map only', true, false], ['now', 'In Now only', false, true], ['hidden', 'Not shown', false, false]];
+  const SHOWN_OTHER = [['now', 'In Now', true, true], ['hidden', 'Not shown', true, false]];
+  const shownChoices = type => type === 'place' ? SHOWN_PLACE : SHOWN_OTHER;
+  const shownValue = (type, r) => shownChoices(type).find(x => x[2] === r.on_map && x[3] === r.on_watch);
   const YT_API = 'https://www.youtube.com/iframe_api';
   let ytApiPromise = null;
   function youtubeApi() {
@@ -1144,7 +1152,7 @@
     if (routeMap) { routeMap.remove(); routeMap = null; }
     const root = el('div', 'mt'); ed.appendChild(root);
     root.appendChild(el('div', 'ed-head', '<div><div class="k">Tool</div><h1>Tape moments</h1></div>'));
-    root.appendChild(el('p', 'help', 'The tape, its subtitles, and what is tagged at each line. Click a line\'s words to tag something said there (select words first, e.g. "Jewish quarter", and they become the name). Switch a tag on to show it as a card next to the transcript on the Watch page.'));
+    root.appendChild(el('p', 'help', 'The tape, its subtitles, and what is tagged at each line. Click a line\'s words to tag something said there (select words first, e.g. "Jewish quarter", and they become the name). The schedule under the video shows what is on the Watch screen and when: drag the end of a bar to keep it on longer or shorter, click a bar to change it.'));
     const tapes = [...S.entities.values()].filter(e => e.type === 'tape').sort((a, b) => a.attrs.number - b.attrs.number);
     if (!tapes.length) throw new Error('There are no tapes in the database');
 
@@ -1155,7 +1163,8 @@
     const follow = el('label', 'selall', '<input type="checkbox" checked> Follow the video');
     const now = el('span', 'mt-now');
     const plSide = el('div', 'mt-plside'); plSide.append(now, follow, plNote);
-    pl.append(frame, plSide); root.appendChild(pl);
+    const sched = el('div', 'mt-sched');
+    pl.append(frame, plSide, sched); root.appendChild(pl);
     const P = { yt: null, ready: false, tapeId: null };
     const tapeById = id => S.entities.get(id);
     const showPlayerFor = async tape => {
@@ -1172,7 +1181,7 @@
                     onError: ev => { plNote.textContent = `YouTube could not play this video (error ${ev.data}).`; } } });
       } catch (err) { frame.hidden = true; plNote.textContent = err.message; }
     };
-    const seek = s => { if (!P.ready) return toast('The video is not loaded', true); P.yt.seekTo(+s, true); P.yt.playVideo(); };
+    const seek = s => { schedAt(+s); if (!P.ready) return toast('The video is not loaded', true); P.yt.seekTo(+s, true); P.yt.playVideo(); };
 
     const bar = el('div', 'mt-bar');
     const tapeSel = el('select'); tapeSel.setAttribute('aria-label', 'Tape');
@@ -1187,12 +1196,14 @@
     bar.append(tapeSel, modeSel, typeSel, find, onlyOn); root.appendChild(bar);
     const counts = el('div', 'mt-counts'); root.appendChild(counts);
     const list = el('div', 'mt-list'); root.appendChild(list);
+    const REL_COLS = 'id,predicate,object_id,start_sec,end_sec,note,on_watch,on_map';
     let cues = [], rels = [], storyDates = [], rows = [], tagOpen = null, byLineNow = new Map(), dateAtNow = new Map();   // tagOpen: { cue, form api } of the open tag form
     const load = async () => {
       list.innerHTML = '<p class="help">Loading…</p>'; tagOpen = null;
       [cues, rels, storyDates] = await Promise.all([
         q(sb.from('cues').select('start_sec,end_sec,text').eq('tape_id', tapeSel.value).eq('lang', 'en').order('start_sec')),
-        q(sb.from('relations').select('id,predicate,object_id,start_sec,note,on_watch').eq('subject_id', tapeSel.value).in('predicate', MOMENT_PREDICATES).order('start_sec')),
+        q(sb.from('relations').select(REL_COLS).eq('subject_id', tapeSel.value).in('predicate', MOMENT_PREDICATES).order('start_sec'))
+          .catch(err => { throw /on_map/.test(err.message) ? new Error('Run data-model/updates/2026-11-14-on-screen.sql in Supabase first (it adds the map switch to tags).') : err; }),
         q(sb.from('story_dates').select('*').eq('tape_id', tapeSel.value).order('start_sec')),
       ]);
       draw();
@@ -1211,6 +1222,7 @@
       rels.forEach(r => { if (ids.includes(r.id)) r.on_watch = on; });
     }
     function draw() {
+      drawSched();
       const f = find.value.trim().toLowerCase(), all = modeSel.value === 'all';
       const byLine = new Map(); byLineNow = byLine;
       rels.filter(tagFilter).forEach(r => { const c = lineOf(r) || BEFORE; (byLine.get(c) || byLine.set(c, []).get(c)).push(r); });
@@ -1269,9 +1281,129 @@
       const tag = el('div', 'mt-tag' + (r.on_watch ? ' on' : ''));
       const sw = el('input'); sw.type = 'checkbox'; sw.className = 'switch'; sw.checked = r.on_watch; sw.setAttribute('aria-label', 'Show ' + e.name + ' on the Watch page');
       sw.onchange = async () => { try { await setWatch([r.id], sw.checked); tag.classList.toggle('on', sw.checked); draw(); } catch (err) { sw.checked = !sw.checked; fail(err); } };
+      sw.setAttribute('aria-label', 'Show ' + e.name + ' in the Now ticker on the Watch page');
       const open = el('button', 'linkbtn', 'Open'); open.type = 'button'; open.onclick = ev => { ev.preventDefault(); openEntity(e.id); };
-      tag.append(sw, el('i', `dot t-${e.type}`), el('span', 'mt-name', `${esc(e.name)} <span class="mt-meta">${esc(S.typeByKey[e.type].label)} · ${esc(rt.label)} at ${fmtTime(r.start_sec)}${r.note ? ' · ' + esc(r.note) : ''}</span>`), open);
+      const edit = el('button', 'linkbtn', 'On screen…'); edit.type = 'button'; edit.onclick = ev => { ev.preventDefault(); openScreenForm(r); };
+      const w = planNow.get(r.id), where = r.predicate === PICTURE_PREDICATE ? `picture until ${fmtTime(r.end_sec)}` : shownValue(e.type, r)[1].toLowerCase() + (w.map || w.now ? ` until ${fmtTime((w.map || w.now)[1])}${r.end_sec === null ? ' (default)' : ''}` : '');
+      const btns = el('span', 'mt-btns'); btns.append(edit, open);
+      tag.append(sw, el('i', `dot t-${e.type}`), el('span', 'mt-name', `${esc(e.name)} <span class="mt-meta">${esc(S.typeByKey[e.type].label)} · ${esc(rt.label)} at ${fmtTime(r.start_sec)} · ${esc(where)}${r.note ? ' · ' + esc(r.note) : ''}</span>`), btns);
+      tag.dataset.rel = r.id;
       return tag;
+    }
+
+    // ----- the schedule: what is on the Watch screen and when (Site.schedule, the same rules as the Watch page) -----
+    let planNow = new Map(), schedStart = 0, schedT = 0, schedDrag = null;
+    const tapeDuration = () => { const d = tapeById(tapeSel.value).attrs.duration_sec; if (typeof d !== 'number') throw new Error('The tape has no duration_sec'); return d; };
+    const plan = () => Site.schedule(rels.map(r => ({ key: r.id, start: +r.start_sec, end: r.end_sec === null ? null : +r.end_sec, picture: r.predicate === PICTURE_PREDICATE,
+      place: S.entities.get(r.object_id).type === 'place', onMap: r.on_map, onWatch: r.on_watch })), tapeDuration(), Site.nowSeconds());
+    const SCHED_ROWS = [['pic', 'Picture'], ['map', 'Map'], ['now', 'Now']];
+    // keep the time in view: move the window when it leaves it
+    function schedAt(t) {
+      schedT = t;
+      if (t < schedStart + 5 || t > schedStart + SCHED_WINDOW_SEC - 20) { schedStart = Math.max(0, t - SCHED_LEAD_SEC); drawSched(); }
+      const head = sched.querySelector('.ms-head');
+      if (head) head.style.left = ((t - schedStart) / SCHED_WINDOW_SEC * 100) + '%';
+    }
+    function drawSched() {
+      if (schedDrag !== null) return;
+      planNow = plan();
+      const x = s => (s - schedStart) / SCHED_WINDOW_SEC * 100, w0 = schedStart, w1 = schedStart + SCHED_WINDOW_SEC;
+      sched.innerHTML = '';
+      const nav = el('div', 'ms-nav');
+      const back = el('button', 'linkbtn', '‹ Earlier'); back.type = 'button'; back.onclick = () => { schedStart = Math.max(0, schedStart - SCHED_WINDOW_SEC / 2); drawSched(); };
+      const fwd = el('button', 'linkbtn', 'Later ›'); fwd.type = 'button'; fwd.onclick = () => { schedStart += SCHED_WINDOW_SEC / 2; drawSched(); };
+      nav.append(el('span', 'ms-range', `On screen, ${fmtTime(w0)} to ${fmtTime(w1)}`), back, fwd);
+      sched.appendChild(nav);
+      const body = el('div', 'ms-body');
+      for (let s = Math.ceil(w0 / 30) * 30; s < w1; s += 30) { const t = el('span', 'ms-tick', fmtTime(s)); t.style.left = x(s) + '%'; body.appendChild(t); }
+      SCHED_ROWS.forEach(([k, label]) => {
+        const row = el('div', 'ms-row'); row.appendChild(el('span', 'ms-label', label));
+        const lanes = el('div', 'ms-lanes'), laneEnd = [];
+        rels.filter(r => planNow.get(r.id)[k] !== null).sort((a, b) => a.start_sec - b.start_sec).forEach(r => {
+          const [a, b] = planNow.get(r.id)[k];
+          if (b <= w0 || a >= w1) return;
+          let lane = laneEnd.findIndex(e => e <= a); if (lane < 0) { lane = laneEnd.length; laneEnd.push(0); } laneEnd[lane] = b;
+          const e = S.entities.get(r.object_id);
+          const bar = el('div', `ms-bar t-${e.type}` + (r.end_sec === null ? ' dflt' : ''));
+          bar.style.left = x(Math.max(a, w0)) + '%'; bar.style.width = (x(Math.min(b, w1)) - x(Math.max(a, w0))) + '%'; bar.style.top = (lane * 22) + 'px';
+          bar.title = `${e.name}: ${fmtTime(a)} to ${fmtTime(b)}${r.end_sec === null ? ' (default)' : ''}. Click to change, drag the right end to set the end.`;
+          bar.appendChild(el('span', 'ms-name', esc(e.name)));
+          bar.onclick = ev => { if (ev.target.classList.contains('ms-end')) return; openScreenForm(r); };
+          if (b <= w1) {   // its end is in view: drag it
+            const end = el('span', 'ms-end'); end.title = 'Drag to change until when it is on screen';
+            end.onpointerdown = ev => {
+              ev.preventDefault(); ev.stopPropagation(); end.setPointerCapture(ev.pointerId);
+              const box = lanes.getBoundingClientRect();
+              schedDrag = { r, until: b };
+              end.onpointermove = mv => {
+                const t = Math.round((w0 + (mv.clientX - box.left) / box.width * SCHED_WINDOW_SEC) / SCHED_SNAP_SEC) * SCHED_SNAP_SEC;
+                schedDrag.until = Math.min(tapeDuration(), Math.max(+r.start_sec + SCHED_SNAP_SEC, t));
+                bar.style.width = (x(schedDrag.until) - x(Math.max(a, w0))) + '%'; bar.title = `until ${fmtTime(schedDrag.until)}`;
+                bar.querySelector('.ms-name').textContent = `${e.name} · until ${fmtTime(schedDrag.until)}`;
+              };
+              end.onpointerup = async () => {
+                end.onpointermove = end.onpointerup = null;
+                const until = schedDrag.until; schedDrag = null;
+                if (until === b) return drawSched();
+                try { await setScreen(r, { end_sec: until }); toast(`${e.name}: on screen until ${fmtTime(until)}`); } catch (err) { fail(err); }
+                draw();
+              };
+            };
+            bar.appendChild(end);
+          }
+          lanes.appendChild(bar);
+        });
+        lanes.style.height = Math.max(1, laneEnd.length) * 22 + 'px';
+        row.appendChild(lanes); body.appendChild(row);
+      });
+      const head = el('div', 'ms-head'); head.style.left = x(schedT) + '%'; body.appendChild(head);
+      sched.appendChild(body);
+    }
+    async function setScreen(r, patch) {
+      await q(sb.from('relations').update(patch).eq('id', r.id).select('id'));
+      Object.assign(r, patch);
+    }
+    // change where and until when a tag is on screen; opens under its line
+    function openScreenForm(r) {
+      let target = rows.find(x => x.row.querySelector(`[data-rel="${r.id}"]`));
+      if (target === undefined) { modeSel.value = 'all'; find.value = ''; typeSel.value = ''; onlyOn.querySelector('input').checked = false; draw(); target = rows.find(x => x.row.querySelector(`[data-rel="${r.id}"]`)); }
+      if (target === undefined) return toast('That tag is not on a subtitle line', true);
+      list.querySelectorAll('.mt-tagform').forEach(n => n.remove());
+      const e = S.entities.get(r.object_id), pic = r.predicate === PICTURE_PREDICATE, w = planNow.get(r.id);
+      const f = el('form', 'mt-tagform relform');
+      f.appendChild(el('h4', 'mt-sub', `On screen: ${esc(e.name)} <span class="mt-meta">from ${fmtTime(r.start_sec)}</span>`));
+      const box = el('div', 'grid');
+      const dflt = pic ? null : (w.map || w.now);
+      const untilF = fieldInput({ key: 'until', label: 'On screen until', input: 'text', required: pic,
+        help: pic ? 'minutes:seconds' : `minutes:seconds. Empty: the default (${e.type === 'place' ? 'a place stays on the map until the next place' : `${Site.nowSeconds()} seconds`})` }, r.end_sec === null ? null : fmtTime(r.end_sec), []);
+      box.appendChild(untilF);
+      let shownIn = null;
+      if (!pic) {
+        const sf = fieldInput({ key: 'shown', label: 'Shown', input: 'select', required: true }, shownValue(e.type, r)[0], shownChoices(e.type).map(([value, label]) => ({ value, label })));
+        shownIn = sf.querySelector('select'); box.appendChild(sf);
+      }
+      f.appendChild(box);
+      if (dflt && r.end_sec === null) f.appendChild(el('p', 'help', `Now: until ${fmtTime(dflt[1])} (the default).`));
+      const ra = el('div', 'row-actions');
+      const ok = el('button', 'primary', 'Save'); ok.type = 'submit';
+      const cancel = el('button', 'ghost', 'Cancel'); cancel.type = 'button'; cancel.onclick = () => { f.remove(); tagOpen = null; };
+      ra.append(ok, cancel); f.appendChild(ra);
+      f.onsubmit = async ev => {
+        ev.preventDefault();
+        try {
+          const v = untilF.querySelector('input').value.trim();
+          const until = v === '' ? null : r.end_sec !== null && v === fmtTime(r.end_sec) ? +r.end_sec : parseTime(v);
+          if (until !== null && until <= +r.start_sec) throw new Error('"Until" must be after the start, ' + fmtTime(r.start_sec));
+          const patch = { end_sec: until };
+          if (shownIn) { const c = shownChoices(e.type).find(x => x[0] === shownIn.value); patch.on_map = c[2]; patch.on_watch = c[3]; }
+          ok.disabled = true;
+          await setScreen(r, patch); tagOpen = null; draw(); toast('Saved');
+        } catch (err) { ok.disabled = false; fail(err); }
+      };
+      target.row.appendChild(f);
+      tagOpen = { cue: target.c, api: { setName: () => {} } };
+      target.row.scrollIntoView({ block: 'center' });
+      untilF.querySelector('input').focus();
     }
 
     // ----- the tag form under a line: a new item, an existing item, or a picture to show on screen -----
@@ -1372,15 +1504,21 @@
       const predF = fieldInput({ key: 'predicate', label: 'Connection', input: 'select', required: true }, null, []);
       const predIn = predF.querySelector('select');
       const t0 = fieldInput({ key: 'start', label: 'From', input: 'text', required: true, help: 'minutes:seconds' }, fmtTime(c.start_sec), []);
-      const t1 = fieldInput({ key: 'end', label: 'Until', input: 'text', help: 'preset to the end of this line' }, fmtTime(c.end_sec), []);
+      const UNTIL_HELP = `On screen until (minutes:seconds). Empty: the default (a place stays on the map until the next place; Now keeps it ${Site.nowSeconds()} s)`;
+      const t1 = fieldInput({ key: 'end', label: 'Until', input: 'text', help: UNTIL_HELP }, null, []);
       const certF = fieldInput({ key: 'certainty', label: 'Certainty', input: 'enum', required: true, help: 'For the moment, and for the item if it is new' }, null, enumChoices('certainty'));
       const statF = fieldInput({ key: 'status', label: 'On the site', input: 'enum', required: true, help: `Preset to the tape's (${human(tape.status).toLowerCase()})` }, tape.status, enumChoices('status'));
       const noteF = fieldInput({ key: 'note', label: 'Note', input: 'text', wide: true }, null, []);
-      const watchF = el('label', 'selall wide', '<input type="checkbox" checked> Show as a card on the Watch page');
-      momBox.append(predF, t0, t1, certF, statF, noteF, watchF);
+      const shownF = fieldInput({ key: 'shown', label: 'Shown on the Watch page', input: 'select', required: true }, null, []);
+      const shownSel = shownF.querySelector('select');
+      // the choices follow the item's type; the first one (shown everywhere) unless changed by hand
+      let shownTouched = false; shownSel.addEventListener('change', () => shownTouched = true);
+      const syncShown = () => { const cur = shownSel.value, ch = shownChoices(typeNow()); shownSel.innerHTML = ''; ch.forEach(([v, l]) => { const o = el('option', null, esc(l)); o.value = v; shownSel.appendChild(o); }); shownSel.value = shownTouched && ch.some(x => x[0] === cur) ? cur : ch[0][0]; };
+      momBox.append(predF, t0, t1, shownF, certF, statF, noteF);
       const t1In = t1.querySelector('input');
       const typeNow = () => st.mode === 'new' ? (typeIn.value === '' ? null : typeIn.value) : st.mode === 'pic' ? PICTURE_TYPE : st.other === null ? null : S.entities.get(st.other).type;
       const syncPred = () => {
+        syncShown();
         const cur = predIn.value, ok = predChoices(typeNow()), want = st.mode === 'pic' ? PICTURE_PREDICATE : TAG_PREDICATE;
         predIn.innerHTML = '';
         ok.forEach(rt => { const o = el('option', null, esc(rt.label)); o.value = rt.key; predIn.appendChild(o); });
@@ -1402,9 +1540,12 @@
       const setMode = m => {
         st.mode = m;
         Object.entries(boxes).forEach(([k, b]) => { b.hidden = k !== m; b.querySelectorAll('input, select, textarea').forEach(i => i.disabled = k !== m); tabBtn[k].classList.toggle('on', k === m); });
-        // a picture stays up at least PICTURE_MIN_SEC unless the time was changed by hand
-        if (m === 'pic' && t1In.value === fmtTime(c.end_sec) && +c.end_sec - +c.start_sec < PICTURE_MIN_SEC) t1In.value = fmtTime(+c.start_sec + PICTURE_MIN_SEC);
-        if (m !== 'pic' && t1In.value === fmtTime(+c.start_sec + PICTURE_MIN_SEC)) t1In.value = fmtTime(c.end_sec);
+        // a picture needs an end: preset to the end of the line, at least PICTURE_MIN_SEC; a tag's end is empty (the default) unless typed
+        const picEnd = fmtTime(Math.max(+c.end_sec, +c.start_sec + PICTURE_MIN_SEC));
+        if (m === 'pic' && t1In.value === '') t1In.value = picEnd;
+        if (m !== 'pic' && t1In.value === picEnd) t1In.value = '';
+        t1In.required = m === 'pic';
+        t1.querySelector('.help').textContent = m === 'pic' ? 'The picture is on screen until (minutes:seconds)' : UNTIL_HELP;
         ok.textContent = m === 'pic' ? 'Upload and show' : m === 'date' ? 'Save story date' : 'Tag it';
         // a story date is not a tag: the moment fields do not apply
         momHead.hidden = momBox.hidden = m === 'date';
@@ -1438,7 +1579,7 @@
           const s0 = t0.querySelector('input').value.trim(), s1 = t1In.value.trim();
           // unchanged fields keep the line's exact times (the boxes show them rounded to the second)
           const start = s0 === fmtTime(c.start_sec) ? +c.start_sec : parseTime(s0);
-          const end = s1 === '' ? null : s1 === fmtTime(c.end_sec) ? +c.end_sec : parseTime(s1);
+          const end = s1 === '' ? null : parseTime(s1);
           const certainty = val('certainty'), status = val('status');
           let objectId;
           ok.disabled = true;
@@ -1468,8 +1609,9 @@
             }
           }
           const rel = { subject_id: tape.id, predicate: predIn.value, object_id: objectId, start_sec: start, end_sec: end, certainty, status,
-                        note: val('note'), on_watch: watchF.querySelector('input').checked, origin: TAG_ORIGIN };
-          const r = await q(sb.from('relations').insert(rel).select('id,predicate,object_id,start_sec,note,on_watch').single());
+                        note: val('note'), origin: TAG_ORIGIN };
+          const shown = shownChoices(typeNow()).find(x => x[0] === shownSel.value); rel.on_map = shown[2]; rel.on_watch = shown[3];
+          const r = await q(sb.from('relations').insert(rel).select(REL_COLS).single());
           rels.push(r); rels.sort((a, b) => a.start_sec - b.start_sec);
           renderList(); draw();
           toast(`${st.mode === 'pic' ? 'Picture shows' : 'Tagged ' + S.entities.get(objectId).name} at ${fmtTime(start)}`);
@@ -1492,6 +1634,7 @@
       if (!P.ready) return;
       const t = P.yt.getCurrentTime();
       now.textContent = fmtTime(t);
+      if (t !== schedT) schedAt(t);
       let cur = null; for (const x of rows) { if (+x.c.start_sec <= t) cur = x; else break; }
       rows.forEach(x => x.row.classList.toggle('mt-playing', x === cur && t < +x.c.end_sec + 2));
       const playing = P.yt.getPlayerState() === 1;

@@ -26,6 +26,9 @@
   const offsets = []; let total = 0; TAPES.forEach(t => { offsets.push(total); total += t.duration; });
   const G = (ti, t) => offsets[ti] + t;
 
+  // the database update 2026-11-14-on-screen.sql adds "map" (on_map) to moments; until it is run every place moment is on the map (said in the console)
+  const hasOnMap = R.every(r => 'map' in r);
+  if (!hasOnMap) console.error('Moments have no map switch yet: run data-model/updates/2026-11-14-on-screen.sql in Supabase');
   const moments = TAPES.map(() => []);      // per tape: {t0, id, note, certainty}
   const animates = [];                        // {g, leg}
   const pictures = TAPES.map(() => []);     // per tape: pictures on screen {t0, t1, id, note, page}
@@ -33,7 +36,7 @@
     const s = E[r.s];
     if (!s || s.type !== 'tape' || r.t0 == null) return;
     const ti = tapeIdx[r.s];
-    if (r.p === 'mentions' || r.p === 'shows' || r.p === 'illustrates') moments[ti].push({ ti, t0: +r.t0, id: r.o, note: r.note, certainty: r.certainty, watch: r.watch });
+    if (r.p === 'mentions' || r.p === 'shows' || r.p === 'illustrates') moments[ti].push({ ti, t0: +r.t0, t1: r.t1 == null ? null : +r.t1, id: r.o, note: r.note, certainty: r.certainty, watch: r.watch, map: hasOnMap ? r.map : true, picture: r.p === 'illustrates' });
     if (r.p === 'animates') animates.push({ g: G(ti, +r.t0), leg: r.o });
     if (r.p === 'illustrates') {
       const img = r.o in PAGES ? PAGES[r.o].find(p => p.mime.startsWith('image/')) : undefined;
@@ -42,7 +45,14 @@
     }
   });
   moments.forEach(m => m.sort((a, b) => a.t0 - b.t0));
-  const allMoments = moments.flat().map(m => ({ ...m, g: G(m.ti, m.t0) })).sort((a, b) => a.g - b.g);
+  // when each moment is on screen (map, Now ticker), from the tags' own "until" times or the defaults (Site.schedule)
+  const NOW_SECONDS = Site.nowSeconds();
+  const allMoments = moments.flatMap((list, ti) => {
+    const plan = Site.schedule(list.map((m, i) => ({ key: i, start: m.t0, end: m.t1, picture: m.picture, place: m.id in E && E[m.id].type === 'place', onMap: m.map, onWatch: m.watch })), TAPES[ti].duration, NOW_SECONDS);
+    const toG = w => w === null ? null : [G(ti, w[0]), G(ti, w[1])];
+    return list.map((m, i) => ({ ...m, g: G(ti, m.t0), mapWin: toG(plan.get(i).map), nowWin: toG(plan.get(i).now) }));
+  }).sort((a, b) => a.g - b.g);
+  const within = (w, x) => w !== null && x >= w[0] && x < w[1];
 
   // journeys and legs
   const legs = {};
@@ -140,7 +150,8 @@
   }
 
   // ---------- stage (right panel): a picture while one is on screen, else the map ----------
-  const MAP_GROUP = 20;   // seconds: places mentioned this close together are shown together on the map
+  // the place moments on the map at time x (their map times), oldest first
+  const mapNow = x => allMoments.filter(m => m.g <= x && within(m.mapWin, x) && m.id in coord);
   const AREA_KEY = 'area';   // place attrs field with its outline (GeoJSON Polygon/MultiPolygon)
   const stage = $('#stage'), stagePic = $('#stagePic');
   let picNow = null;
@@ -184,10 +195,9 @@
     if (mode !== st.stageMode) { st.stageMode = mode; stage.classList.remove('mode-pic', 'mode-map'); stage.classList.add('mode-' + mode); }
   }
 
-  // ---------- now ticker: the items mentioned in the last HOLD seconds, newest first ----------
+  // ---------- now ticker: the items on screen now (their Now times), newest first ----------
   const tickerBox = $('#tickerItems');
   $('#ticker').hidden = !allMoments.some(m => m.watch);
-  const HOLD = 45;   // seconds a mention stays "now"
   const TICKER_MAX = 6;
   function tickerItem(m) {
     const e = E[m.id];
@@ -203,10 +213,10 @@
     const past = [];
     for (const m of allMoments) { if (m.g > G0) break; past.push(m); }
     const nowList = [], seen = new Set();
-    // only the moments switched on for the Watch page (admin > Tape moments)
+    // only the moments switched on for the Now ticker (admin > Tape moments)
     for (let i = past.length - 1; i >= 0 && nowList.length < TICKER_MAX; i--) {
-      const m = past[i]; if (G0 - m.g > HOLD) break;
-      if (m.watch && !seen.has(m.id)) { seen.add(m.id); nowList.push(m); }
+      const m = past[i];
+      if (within(m.nowWin, G0) && !seen.has(m.id)) { seen.add(m.id); nowList.push(m); }
     }
     const key = nowList.map(m => m.id + '@' + m.g).join('|') + '#' + past.length;
     if (key === st.lastNowKey) return;
@@ -216,9 +226,9 @@
     tickerBox.replaceChildren(...nowList.map(m => have[m.id + '@' + m.g] || tickerItem(m)));
     if (!nowList.length) tickerBox.appendChild(el('span', 'tk-empty', past.some(m => m.watch) ? 'Listening…' : 'Places, people and documents appear here as Jonas mentions them.'));
 
-    // place for the map overlay (the date comes from the story dates, renderStory)
-    const lastPlace = [...past].reverse().find(m => E[m.id].type === 'place');
-    $('#where').textContent = lastPlace ? E[lastPlace.id].name : '';
+    // place for the map overlay: the newest place on the map now (the date comes from the story dates, renderStory)
+    const onMap = mapNow(G0);
+    $('#where').textContent = onMap.length ? E[onMap[onMap.length - 1].id].name : '';
     st.storyKey = null; renderStory();
   }
 
@@ -387,12 +397,10 @@
     });
     if (changed) { pushLegs(); animateLegs(); }
     // places
-    // "current" places: the latest place mentioned in the last HOLD seconds, with the places mentioned up to
-    // MAP_GROUP seconds before it (e.g. a street, the Dam and the palace in one sentence): highlighted, named, kept in view together
-    const visited = new Map(), placeMoments = [];
-    for (const m of allMoments) { if (m.g > G0) break; if (E[m.id].type === 'place' && coord[m.id]) { visited.set(m.id, m); placeMoments.push(m); } }
-    const latest = placeMoments.length && G0 - placeMoments[placeMoments.length - 1].g <= HOLD ? placeMoments[placeMoments.length - 1].g : null;
-    const current = new Set(latest === null ? [] : placeMoments.filter(m => latest - m.g <= MAP_GROUP).map(m => m.id));
+    // "current" places: the ones on the map now (admin > Tape moments sets how long): highlighted, named, kept in view together
+    const visited = new Map();
+    for (const m of allMoments) { if (m.g > G0) break; if (E[m.id].type === 'place' && coord[m.id] && m.mapWin !== null) visited.set(m.id, m); }
+    const current = new Set(mapNow(G0).map(m => m.id));
     const curKey = [...current].sort().join(',');
     const key = visited.size + ':' + curKey;
     if (key === st.mapKey) return;

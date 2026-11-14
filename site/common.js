@@ -55,5 +55,29 @@ window.Site = (() => {
     maplibregl.setRTLTextPlugin(RTL_PLUGIN, true).catch(err => console.error('Right-to-left map labels could not load:', err));
   }
 
-  return { $, el, esc, fmt, nullsLast, fileUrl, showError, loadData, index, watchLink, documentLink, rtlLabels };
+  // What is on the Watch screen and when, for the moments of one tape (shared by the Watch page and the admin schedule).
+  // moments: [{ key, start, end, picture, place, onMap, onWatch }]; end = "on screen until", null = the default:
+  //   a place stays on the map until the next place on the map (or the end of the tape),
+  //   the Now ticker keeps an item for nowSeconds. A picture always has its own end.
+  // Returns key -> { pic, map, now }, each [from, until] or null.
+  function schedule(moments, duration, nowSeconds) {
+    const mapStarts = moments.filter(m => m.place && m.onMap && !m.picture).map(m => m.start).sort((a, b) => a - b);
+    const out = new Map();
+    moments.forEach(m => {
+      const next = mapStarts.find(s => s > m.start);
+      out.set(m.key, {
+        pic: m.picture ? [m.start, m.end] : null,
+        map: m.place && m.onMap && !m.picture ? [m.start, m.end !== null ? m.end : next !== undefined ? next : duration] : null,
+        now: m.onWatch ? [m.start, m.end !== null ? m.end : m.start + nowSeconds] : null
+      });
+    });
+    return out;
+  }
+  function nowSeconds() {
+    const n = config().nowSeconds;
+    if (typeof n !== 'number') throw new Error('site/config.js needs nowSeconds: how long an item stays in the Now ticker.');
+    return n;
+  }
+
+  return { $, el, esc, fmt, nullsLast, fileUrl, showError, loadData, index, watchLink, documentLink, rtlLabels, schedule, nowSeconds };
 })();

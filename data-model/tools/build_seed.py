@@ -157,7 +157,7 @@ for t in tags:
     name = RENAME.get(t['name'], t['name'])
     obj = f"(select id from entities where slug = {q(t['_event'])})" if t['type'] == 'date' else ref(name)
     rel(tape(t['tape']), 'mentions', obj, start_sec=float(t['start_sec']),
-        end_sec=float(t['end_sec']), note=t['note'],
+        end_sec=None, note=t['note'],   # end_sec of a moment = on screen until; empty = the default
         certainty='to_verify' if t['needs_check'] else 'probable', origin='batch:tapes')
 
 # 2. family, from the relationship column in people.csv (relative to Jonas)

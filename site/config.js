@@ -8,5 +8,7 @@ window.SITE_CONFIG = {
   // the year strip on the Watch page: the years in view when the page opens (first, last); drag for the others
   storyYears: [1939, 1945],
   // where the Watch map opens, before any place is mentioned: centre [longitude, latitude] and zoom (Europe)
-  mapHome: { center: [10, 50], zoom: 3.4 }
+  mapHome: { center: [10, 50], zoom: 3.4 },
+  // seconds an item stays in the Watch page's Now ticker unless its tag has its own "on screen until" (admin > Tape moments)
+  nowSeconds: 45
 };
