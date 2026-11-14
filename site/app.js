@@ -3,7 +3,7 @@
    vocabulary (entity_types, attr_options, relation_types). */
 (() => {
   'use strict';
-  const { $, el, esc, fmt, nullsLast, fileUrl, showError, loadData } = Site;
+  const { $, el, esc, nullsLast, fileUrl, showError, loadData } = Site;
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
   // config.js sets where the map opens (mapHome: { center: [lng, lat], zoom })
@@ -84,10 +84,6 @@
   const tape = () => TAPES[st.ti];
   const g = () => G(st.ti, st.t);
 
-  // one joined video: moments are just a time
-  const at = (ti, t) => TAPES.length > 1 ? `Tape ${TAPES[ti].number} · ${fmt(t)}` : fmt(t);
-  const cueAt = (cues, t) => { let lo = 0, hi = cues.length - 1, ans = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (+cues[m][0] <= t) { ans = m; lo = m + 1; } else hi = m - 1; } return ans; };
-
   // ---------- player: the YouTube player is the only control; the page follows it ----------
   const ytOn = () => st.ytReady && !!tape().youtube_id;
   function play() { if (ytOn()) st.yt.playVideo(); }
@@ -144,6 +140,7 @@
   }
 
   // ---------- stage (right panel): a picture while one is on screen, else the map ----------
+  const MAP_GROUP = 20;   // seconds: places mentioned this close together are shown together on the map
   const AREA_KEY = 'area';   // place attrs field with its outline (GeoJSON Polygon/MultiPolygon)
   const stage = $('#stage'), stagePic = $('#stagePic');
   let picNow = null;
@@ -390,26 +387,30 @@
     });
     if (changed) { pushLegs(); animateLegs(); }
     // places
-    const visited = new Map(); let current = null;
-    for (const m of allMoments) { if (m.g > G0) break; if (E[m.id].type === 'place' && coord[m.id]) { visited.set(m.id, m); if (G0 - m.g <= HOLD) current = m; } }
-    const key = visited.size + ':' + (current && current.id);
+    // "current" places: the latest place mentioned in the last HOLD seconds, with the places mentioned up to
+    // MAP_GROUP seconds before it (e.g. a street, the Dam and the palace in one sentence): highlighted, named, kept in view together
+    const visited = new Map(), placeMoments = [];
+    for (const m of allMoments) { if (m.g > G0) break; if (E[m.id].type === 'place' && coord[m.id]) { visited.set(m.id, m); placeMoments.push(m); } }
+    const latest = placeMoments.length && G0 - placeMoments[placeMoments.length - 1].g <= HOLD ? placeMoments[placeMoments.length - 1].g : null;
+    const current = new Set(latest === null ? [] : placeMoments.filter(m => latest - m.g <= MAP_GROUP).map(m => m.id));
+    const curKey = [...current].sort().join(',');
+    const key = visited.size + ':' + curKey;
     if (key === st.mapKey) return;
     st.mapKey = key;
     const feat = id => ({ type: 'Feature', properties: { id, name: E[id].name, est: estimated.has(id) }, geometry: { type: 'Point', coordinates: coord[id] } });
     map.getSource('visited').setData({ type: 'FeatureCollection', features: [...visited.keys()].map(feat) });
-    map.getSource('current').setData({ type: 'FeatureCollection', features: current ? [feat(current.id)] : [] });
-    const area = current && AREA_KEY in E[current.id].attrs ? E[current.id].attrs[AREA_KEY] : null;
-    map.getSource('area').setData({ type: 'FeatureCollection', features: area ? [{ type: 'Feature', properties: {}, geometry: area }] : [] });
+    map.getSource('current').setData({ type: 'FeatureCollection', features: [...current].map(feat) });
+    const areas = [...current].filter(id => AREA_KEY in E[id].attrs).map(id => E[id].attrs[AREA_KEY]);
+    map.getSource('area').setData({ type: 'FeatureCollection', features: areas.map(geometry => ({ type: 'Feature', properties: {}, geometry })) });
     // before any place is mentioned (e.g. at the start), the map shows the home view (config.js mapHome)
     if (visited.size === 0 && st.lastPlace !== null) { st.lastPlace = null; map.flyTo({ ...HOME, speed: jump ? 3 : 0.8, essential: true }); }
-    if (current && current.id !== st.lastPlace) {
-      st.lastPlace = current.id;
-      const zoom = option(E[current.id], 'kind').display.zoom;
-      if (area) {   // show the whole outline, no closer than the kind's zoom
-        const pts = area.type === 'Polygon' ? area.coordinates.flat() : area.coordinates.flat(2);
-        const b = pts.reduce((a, [x, y]) => [Math.min(a[0], x), Math.min(a[1], y), Math.max(a[2], x), Math.max(a[3], y)], [Infinity, Infinity, -Infinity, -Infinity]);
-        map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 60, maxZoom: zoom, speed: jump ? 3 : 0.8, curve: 1.5, essential: true });
-      } else map.flyTo({ center: coord[current.id], zoom, speed: jump ? 3 : 0.8, curve: 1.5, essential: true });
+    if (current.size && curKey !== st.lastPlace) {
+      st.lastPlace = curKey;
+      // no closer than the most detailed kind among them (e.g. a street), and far enough out to show them all with their outlines
+      const zoom = Math.max(...[...current].map(id => option(E[id], 'kind').display.zoom));
+      const pts = [...[...current].map(id => coord[id]), ...areas.flatMap(a => a.type === 'Polygon' ? a.coordinates.flat() : a.coordinates.flat(2))];
+      const b = pts.reduce((a, [x, y]) => [Math.min(a[0], x), Math.min(a[1], y), Math.max(a[2], x), Math.max(a[3], y)], [Infinity, Infinity, -Infinity, -Infinity]);
+      map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 70, maxZoom: zoom, speed: jump ? 3 : 0.8, curve: 1.5, essential: true });
     }
   }
 
@@ -417,15 +418,13 @@
   const drawer = $('#drawer'), scrim = $('#scrim'), body = $('#drawerBody');
   function closeDrawer() { drawer.classList.remove('show'); scrim.classList.remove('show'); drawer.setAttribute('aria-hidden', 'true'); }
   $('#close').onclick = closeDrawer; scrim.onclick = closeDrawer;
-  const cueTextAt = (ti, t) => { const i = cueAt(TAPES[ti].cues, t + 0.01); return i < 0 ? null : TAPES[ti].cues[i][2]; };
-  window.__jump = (ti, t) => { closeDrawer(); seek(ti, Math.max(0, t - 1)); play(); };
   window.__open = id => openEntity(id);
 
   function openEntity(id) {
     const e = E[id]; if (!e) return;
-    const facts = [], ms = [];
+    const facts = [];
     R.forEach(r => {
-      if (r.p === 'mentions' || r.p === 'shows' || r.p === 'illustrates') { if (r.o === id) ms.push({ ti: tapeIdx[r.s], t: +r.t0, note: r.note }); return; }
+      if (r.p === 'mentions' || r.p === 'shows' || r.p === 'illustrates') return;
       if (r.p === 'animates') return;
       if (r.s !== id && r.o !== id) return;
       const forward = r.s === id, other = forward ? r.o : r.s;
@@ -459,30 +458,16 @@
     }
     const details = D.attr_fields.filter(f => f.type === e.type && f.key in e.attrs && (f.input === 'text' || f.input === 'url') && e.type !== 'tape');
     if (details.length) h += `<dl class="details">${details.map(f => `<div><dt>${esc(f.label)}</dt><dd>${f.input === 'url' ? `<a href="${esc(e.attrs[f.key])}" target="_blank" rel="noopener">${esc(e.attrs[f.key])}</a>` : esc(e.attrs[f.key])}</dd></div>`).join('')}</dl>`;
-    if (e.type === 'place') {
-      const c = coord[id];
-      h += `<div class="btns" style="margin-top:14px">`;
-      h += `<a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('address' in e.attrs ? e.attrs.address : c && !estimated.has(id) ? c[1] + ',' + c[0] : e.name)}">Open in Google Maps ↗</a>`;
-      h += `<a class="btn" target="_blank" rel="noopener" href="https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(e.name.split(',')[0])}">Wikipedia ↗</a></div>`;
-      h += `<div class="coords">${c ? (estimated.has(id) ? 'Position estimated from the route' : (e.precision ? `Coordinates: ${esc(e.precision)}` : 'Coordinates not checked yet')) : 'No coordinates yet'}</div>`;
-    }
     if (facts.length) {
       h += `<h3>Connections</h3><ul class="facts">`;
       facts.forEach(f => {
-        const r = f.r, src = r.src && E[r.src] && E[r.src].type === 'tape' && r.t0 != null
-          ? ` · <a onclick="__jump(${tapeIdx[r.src]}, ${+r.t0})">${at(tapeIdx[r.src], r.t0)}</a>` : '';
+        const r = f.r;
         const meta = [r.role, r.date_text].filter(Boolean).map(esc).join(' · ');
         h += `<li><span class="lab">${esc(f.label)}</span> <a onclick="__open('${f.other}')">${esc(E[f.other].name)}</a>
           ${r.certainty === 'to_verify' ? '<span class="tag-verify">to verify</span>' : ''}
-          <div class="meta">${meta}${src}${r.note ? (meta || src ? ' · ' : '') + esc(r.note) : ''}</div></li>`;
+          <div class="meta">${meta}${r.note ? (meta ? ' · ' : '') + esc(r.note) : ''}</div></li>`;
       });
       h += `</ul>`;
-    }
-    if (ms.length) {
-      ms.sort((a, b) => G(a.ti, a.t) - G(b.ti, b.t));
-      h += `<h3>In the testimony</h3><div class="moments">`;
-      ms.forEach(m => h += `<button class="moment" onclick="__jump(${m.ti}, ${m.t})"><div class="tc">▶ ${at(m.ti, m.t)}</div>${(q => q === null ? '' : `<div class="q">“${esc(q)}”</div>`)(cueTextAt(m.ti, m.t))}</button>`);
-      h += `</div>`;
     }
     body.innerHTML = h;
     drawer.classList.add('show'); scrim.classList.add('show'); drawer.setAttribute('aria-hidden', 'false');

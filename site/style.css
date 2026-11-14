@@ -99,14 +99,8 @@ button { font: inherit; color: inherit; }
 .facts a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(226,169,91,.5); cursor: pointer; }
 .facts .meta { color: var(--faint); font-size: 12px; }
 .tag-verify { font-size: 10.5px; color: #d7b56d; border: 1px solid rgba(215,181,109,.4); border-radius: 99px; padding: 1px 7px; margin-left: 6px; }
-.moments { display: flex; flex-direction: column; gap: 8px; }
-.moment { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; cursor: pointer; text-align: left; }
-.moment:hover { border-color: rgba(226,169,91,.5); }
-.moment .tc { font-size: 11.5px; color: var(--accent); font-variant-numeric: tabular-nums; }
-.moment .q { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 15px; margin-top: 4px; line-height: 1.45; }
 .btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .btn { border: 1px solid rgba(226,169,91,.6); color: var(--accent); background: none; border-radius: 6px; padding: 7px 12px; font-size: 13px; text-decoration: none; cursor: pointer; }
-.coords { font-size: 12px; color: var(--faint); margin-top: 6px; }
 
 /* ---------- load error ---------- */
 .load-error { grid-column: 1 / -1; max-width: 560px; margin: 12vh auto; padding: 0 16px; text-align: center; }

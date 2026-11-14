@@ -447,9 +447,9 @@ insert into attr_fields (entity_type, key, label, input, when_kind, required, po
  ('term',         'lang',          'Language of the term','text',    null, false, 1, null);
 
 insert into attr_options (entity_type, attr_key, value, label, position, display) values
- ('place', 'kind', 'address', 'Address', 1, '{"zoom": 12.5, "show_kind": true}'),
+ ('place', 'kind', 'address', 'Address', 1, '{"zoom": 16, "show_kind": true}'),
  ('place', 'kind', 'neighbourhood', 'Neighbourhood', 2, '{"zoom": 14, "show_kind": true}'),
- ('place', 'kind', 'station', 'Station', 3, '{"zoom": 12.5, "show_kind": true}'),
+ ('place', 'kind', 'station', 'Station', 3, '{"zoom": 14, "show_kind": true}'),
  ('place', 'kind', 'camp',    'Camp',    4, '{"zoom": 9,    "show_kind": true}'),
  ('place', 'kind', 'port',    'Port',    5, '{"zoom": 7.5,  "show_kind": true}'),
  ('place', 'kind', 'border',  'Border',  6, '{"zoom": 7.5,  "show_kind": true}'),
@@ -457,7 +457,7 @@ insert into attr_options (entity_type, attr_key, value, label, position, display
  ('place', 'kind', 'city',    'City',    8, '{"zoom": 7.5,  "show_kind": false}'),
  ('place', 'kind', 'region',  'Region',  9, '{"zoom": 5.5,  "show_kind": true}'),
  ('place', 'kind', 'country', 'Country', 10, '{"zoom": 4,    "show_kind": true}'),
- ('place', 'kind', 'other',   'Other',  11, '{"zoom": 12.5, "show_kind": false}'),
+ ('place', 'kind', 'other',   'Other',  11, '{"zoom": 16, "show_kind": false}'),
  ('organisation', 'kind', 'archive',   'Archive',   1, '{}'),
  ('organisation', 'kind', 'agency',    'Agency',    2, '{}'),
  ('organisation', 'kind', 'company',   'Company',   3, '{}'),
