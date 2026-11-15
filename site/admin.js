@@ -1339,7 +1339,8 @@
       cues.filter(c => +c.end_sec > w0 && +c.start_sec < w1).forEach(c => {
         const a = Math.max(+c.start_sec, w0), b = Math.min(+c.end_sec, w1);
         const k = el('button', 'ms-cue', esc(c.text)); k.type = 'button'; k.title = `${fmtTime(c.start_sec)} ${c.text}`;
-        k.style.left = x(a) + '%'; k.style.width = (x(b) - x(a)) + '%'; k.onclick = () => seek(c.start_sec);
+        k.style.left = x(a) + '%'; k.style.width = (x(b) - x(a)) + '%'; k.title = `${fmtTime(c.start_sec)} ${c.text} (click to tag something said here)`;
+        k.onclick = () => { seek(c.start_sec); tagLine(c); };
         wl.appendChild(k);
       });
       words.appendChild(wl); body.appendChild(words);
@@ -1357,7 +1358,9 @@
             const place = (from, to) => { bar.style.left = x(Math.max(from, w0)) + '%'; bar.style.width = Math.max(0, x(Math.min(to, w1)) - x(Math.max(from, w0))) + '%'; };
             place(a, b); bar.style.top = (i * 20) + 'px';
             bar.title = `${e.name}, ${k.label}: ${fmtTime(a)} to ${fmtTime(b)}${r[k.col] === null ? ' (default end)' : ''}. Drag to move the tag, drag the right end to change this end, click to change it.`;
-            const name = el('span', 'ms-name', esc(k.label)); bar.appendChild(name);
+            // the bar shows the item's name; the second bar of a tag (its Now time) says so
+            const barName = k.col === 'now_end_sec' ? `${e.name} · in Now` : e.name;
+            const name = el('span', 'ms-name', esc(barName)); bar.appendChild(name);
             const end = el('span', 'ms-end'); end.title = 'Drag to change until when it is on screen';
             if (b <= w1) bar.appendChild(end);
             // drag the bar to move the whole tag (all its bars keep their length), or its end to change only this end; a click opens the form
@@ -1372,12 +1375,12 @@
                 if (!schedDrag.moved && Math.abs(dx) < SCHED_DRAG_PX) return;
                 schedDrag.moved = true; bar.classList.add('dragging');
                 const dt = snap(dx / box.width * schedWin);
-                if (isEnd) { schedDrag.until = Math.min(tapeDuration(), Math.max(a + SCHED_SNAP_SEC, snap(b + dt))); place(a, schedDrag.until); name.textContent = `${k.label} until ${fmtTime(schedDrag.until)}`; shown(schedDrag.until); }
+                if (isEnd) { schedDrag.until = Math.min(tapeDuration(), Math.max(a + SCHED_SNAP_SEC, snap(b + dt))); place(a, schedDrag.until); name.textContent = `${barName} · until ${fmtTime(schedDrag.until)}`; shown(schedDrag.until); }
                 else {
                   const latest = Math.max(...bars.map(z => z.win[1]));
                   schedDrag.d = Math.min(tapeDuration() - latest, Math.max(-a, dt));
                   [...lane.children].forEach((n, j) => { const [p0, p1] = bars[j].win; n.style.left = x(Math.max(p0 + schedDrag.d, w0)) + '%'; n.style.width = Math.max(0, x(Math.min(p1 + schedDrag.d, w1)) - x(Math.max(p0 + schedDrag.d, w0))) + '%'; });
-                  name.textContent = `from ${fmtTime(a + schedDrag.d)}`; shown(a + schedDrag.d);
+                  name.textContent = `${barName} · from ${fmtTime(a + schedDrag.d)}`; shown(a + schedDrag.d);
                 }
               };
               const finish = async () => {
@@ -1425,6 +1428,19 @@
     async function setScreen(r, patch) {
       await q(sb.from('relations').update(patch).eq('id', r.id).select('id'));
       Object.assign(r, patch);
+    }
+    // scroll the list so a line shows just under the sticky player
+    const reveal = row => {
+      const top = row.getBoundingClientRect().top - ed.getBoundingClientRect().top + ed.scrollTop;
+      ed.scrollTo({ top: top - pl.offsetHeight - 10, behavior: 'smooth' });
+    };
+    // open the tag form under a subtitle line (from the schedule's "Said" row); clears the filters if the line is hidden
+    function tagLine(c) {
+      let target = rows.find(x => x.c === c);
+      if (target === undefined) { modeSel.value = 'all'; find.value = ''; typeSel.value = ''; onlyOn.querySelector('input').checked = false; draw(); target = rows.find(x => x.c === c); }
+      if (target === undefined) return toast('That subtitle line is not in the list', true);
+      openTagForm(target.row, c, '');
+      reveal(target.row);
     }
     // change where and until when a tag is on screen; opens under its line
     function openScreenForm(r) {
@@ -1474,7 +1490,7 @@
       };
       target.row.appendChild(f);
       tagOpen = { cue: target.c, api: { setName: () => {} } };
-      target.row.scrollIntoView({ block: 'center' });
+      reveal(target.row);
       untilF.querySelector('input').focus();
     }
 
