@@ -36,7 +36,7 @@
     const s = E[r.s];
     if (!s || s.type !== 'tape' || r.t0 == null) return;
     const ti = tapeIdx[r.s];
-    if (r.p === 'mentions' || r.p === 'shows' || r.p === 'illustrates') moments[ti].push({ ti, t0: +r.t0, t1: r.t1 == null ? null : +r.t1, id: r.o, note: r.note, certainty: r.certainty, watch: r.watch, map: hasOnMap ? r.map : true, picture: r.p === 'illustrates' });
+    if (r.p === 'mentions' || r.p === 'shows' || r.p === 'illustrates') moments[ti].push({ ti, t0: +r.t0, t1: r.t1 == null ? null : +r.t1, nowT1: r.now_t1 == null ? null : +r.now_t1, id: r.o, note: r.note, certainty: r.certainty, watch: r.watch, map: hasOnMap ? r.map : true, picture: r.p === 'illustrates' });
     if (r.p === 'animates') animates.push({ g: G(ti, +r.t0), leg: r.o });
     if (r.p === 'illustrates') {
       const img = r.o in PAGES ? PAGES[r.o].find(p => p.mime.startsWith('image/')) : undefined;
@@ -48,9 +48,9 @@
   // when each moment is on screen (map, Now ticker), from the tags' own "until" times or the defaults (Site.schedule)
   const NOW_SECONDS = Site.nowSeconds();
   const allMoments = moments.flatMap((list, ti) => {
-    const plan = Site.schedule(list.map((m, i) => ({ key: i, start: m.t0, end: m.t1, picture: m.picture, place: m.id in E && E[m.id].type === 'place', onMap: m.map, onWatch: m.watch })), TAPES[ti].duration, NOW_SECONDS);
+    const plan = Site.schedule(list.map((m, i) => ({ key: i, start: m.t0, end: m.t1, nowEnd: m.nowT1, picture: m.picture, place: m.id in E && E[m.id].type === 'place', onMap: m.map, onWatch: m.watch })), TAPES[ti].duration, NOW_SECONDS);
     const toG = w => [G(ti, w[0]), G(ti, w[1])];
-    return list.map((m, i) => { const p = plan.get(i); return { ...m, g: G(ti, m.t0), mapWin: p.map ? toG(p.win) : null, nowWin: p.now ? toG(p.win) : null }; });
+    return list.map((m, i) => { const p = plan.get(i); return { ...m, g: G(ti, m.t0), mapWin: p.map ? toG(p.win) : null, nowWin: p.nowWin === null ? null : toG(p.nowWin) }; });
   }).sort((a, b) => a.g - b.g);
   const within = (w, x) => w !== null && x >= w[0] && x < w[1];
 

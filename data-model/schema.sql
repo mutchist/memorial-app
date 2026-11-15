@@ -125,9 +125,11 @@ create table relations (
   origin      text not null default 'manual',  -- 'manual' / 'batch:tapes' / ...
   on_watch    boolean not null default false,  -- tape moment shown in the Watch page's Now ticker (chosen in the admin)
   on_map      boolean not null default true,   -- tape moment of a place: shown on the Watch map (chosen in the admin)
+  now_end_sec numeric(8,3),                    -- tape moment on the map or a picture: in the Now ticker until (null = the default)
   created_at  timestamptz not null default now(),
   check (subject_id <> object_id),
   check (end_sec is null or (start_sec is not null and end_sec > start_sec)),
+  check (now_end_sec is null or (start_sec is not null and now_end_sec > start_sec)),
   check (date_to is null or date_from is null or date_to >= date_from)
 );
 create index relations_subject on relations (subject_id, predicate);
@@ -528,7 +530,7 @@ select json_build_object(
   'relations', to_json(array(select json_strip_nulls(json_build_object(
       's', r.subject_id, 'p', r.predicate, 'o', r.object_id, 'role', r.role, 'order', r.sort_order,
       'date_text', r.date_text, 'src', src.id, 't0', r.start_sec, 't1', r.end_sec,
-      'note', r.note, 'certainty', r.certainty, 'status', r.status, 'watch', r.on_watch, 'map', r.on_map))
+      'note', r.note, 'certainty', r.certainty, 'status', r.status, 'watch', r.on_watch, 'map', r.on_map, 'now_t1', r.now_end_sec))
     from relations r
     join entities s on s.id = r.subject_id
     join entities o on o.id = r.object_id

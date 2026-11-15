@@ -222,3 +222,4 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .ms-tagrow .ms-lanes { height: 20px; overflow: visible; }
 .ms-tagname { text-transform: none; letter-spacing: 0; font-size: 12px; color: #d4ccbf; top: 2px; }
 .ms-tagname .dot { margin-right: 5px; }
+.ms-bar.ms-nowbar { background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.18) 0 4px, transparent 4px 8px); }

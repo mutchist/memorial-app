@@ -56,17 +56,21 @@ window.Site = (() => {
   }
 
   // What is on the Watch screen and when, for the moments of one tape (shared by the Watch page and the admin schedule).
-  // moments: [{ key, start, end, picture, place, onMap, onWatch }]. Each moment has one time on screen, [start, until],
-  // used wherever it shows (picture, map, Now ticker). until = its own end ("on screen until"); empty = the default:
-  //   a place on the map stays until the next place on the map (or the end of the tape), anything else nowSeconds.
-  // Returns key -> { win: [from, until], pic, map, now } (pic/map/now: where it shows).
+  // moments: [{ key, start, end, nowEnd, picture, place, onMap, onWatch }].
+  // win: the main time on screen, [start, until] (a picture, a place on the map, or else the Now ticker); until = end, or
+  //   the default when empty: a place on the map stays until the next place on the map (or the end of the tape), anything else nowSeconds.
+  // nowWin: the time in the Now ticker. For a picture or a place on the map it has its own end (nowEnd, default nowSeconds);
+  //   for anything else it is win.
+  // Returns key -> { win, nowWin (null when not in Now), pic, map, now, nowOwn (nowWin has its own end) }.
   function schedule(moments, duration, nowSeconds) {
     const mapStarts = moments.filter(m => m.place && m.onMap && !m.picture).map(m => m.start).sort((a, b) => a - b);
     const out = new Map();
     moments.forEach(m => {
-      const onMap = m.place && m.onMap && !m.picture, next = mapStarts.find(s => s > m.start);
+      const onMap = m.place && m.onMap && !m.picture, next = mapStarts.find(s => s > m.start), main = m.picture || onMap;
       const until = m.end !== null ? m.end : onMap ? (next !== undefined ? next : duration) : m.start + nowSeconds;
-      out.set(m.key, { win: [m.start, until], pic: m.picture, map: onMap, now: m.onWatch });
+      const win = [m.start, until];
+      const nowWin = !m.onWatch ? null : main ? [m.start, m.nowEnd !== null ? m.nowEnd : m.start + nowSeconds] : win;
+      out.set(m.key, { win, nowWin, pic: m.picture, map: onMap, now: m.onWatch, nowOwn: main && m.onWatch });
     });
     return out;
   }
