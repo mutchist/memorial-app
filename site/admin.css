@@ -194,10 +194,10 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .mt-sched { grid-column: 1 / -1; }
 .ms-nav { display: flex; gap: 12px; align-items: baseline; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
 .ms-range { margin-right: auto; }
-.ms-body { position: relative; padding-top: 16px; margin-left: 56px; }
+.ms-body { position: relative; padding-top: 16px; margin-left: 170px; }
 .ms-tick { position: absolute; top: 0; transform: translateX(-50%); font-size: 10px; color: var(--faint); font-variant-numeric: tabular-nums; }
 .ms-row { position: relative; border-top: 1px solid var(--line); padding: 3px 0; min-height: 24px; }
-.ms-label { position: absolute; left: -56px; top: 3px; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
+.ms-label { position: absolute; left: -170px; width: 160px; top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
 .ms-lanes { position: relative; max-height: 110px; overflow-y: auto; overflow-x: hidden; }
 .ms-bar { position: absolute; height: 18px; border-radius: 4px; opacity: .85; cursor: pointer; overflow: hidden; min-width: 4px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
 .ms-bar.dflt { opacity: .55; }
@@ -216,3 +216,9 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .ms-cue:hover { background: rgba(226,169,91,.12); color: var(--ink); }
 .ms-bar { touch-action: none; }
 .ms-bar.dragging { opacity: 1; outline: 1px solid var(--ink); z-index: 2; }
+
+.ms-tags { max-height: 190px; overflow-y: auto; overflow-x: hidden; margin-left: -170px; padding-left: 170px; }
+.ms-tagrow { min-height: 22px; padding: 1px 0; border-top-color: rgba(255,255,255,.04); }
+.ms-tagrow .ms-lanes { height: 20px; overflow: visible; }
+.ms-tagname { text-transform: none; letter-spacing: 0; font-size: 12px; color: #d4ccbf; top: 2px; }
+.ms-tagname .dot { margin-right: 5px; }

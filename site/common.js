@@ -56,20 +56,17 @@ window.Site = (() => {
   }
 
   // What is on the Watch screen and when, for the moments of one tape (shared by the Watch page and the admin schedule).
-  // moments: [{ key, start, end, picture, place, onMap, onWatch }]; end = "on screen until", null = the default:
-  //   a place stays on the map until the next place on the map (or the end of the tape),
-  //   the Now ticker keeps an item for nowSeconds. A picture always has its own end.
-  // Returns key -> { pic, map, now }, each [from, until] or null.
+  // moments: [{ key, start, end, picture, place, onMap, onWatch }]. Each moment has one time on screen, [start, until],
+  // used wherever it shows (picture, map, Now ticker). until = its own end ("on screen until"); empty = the default:
+  //   a place on the map stays until the next place on the map (or the end of the tape), anything else nowSeconds.
+  // Returns key -> { win: [from, until], pic, map, now } (pic/map/now: where it shows).
   function schedule(moments, duration, nowSeconds) {
     const mapStarts = moments.filter(m => m.place && m.onMap && !m.picture).map(m => m.start).sort((a, b) => a - b);
     const out = new Map();
     moments.forEach(m => {
-      const next = mapStarts.find(s => s > m.start);
-      out.set(m.key, {
-        pic: m.picture ? [m.start, m.end] : null,
-        map: m.place && m.onMap && !m.picture ? [m.start, m.end !== null ? m.end : next !== undefined ? next : duration] : null,
-        now: m.onWatch ? [m.start, m.end !== null ? m.end : m.start + nowSeconds] : null
-      });
+      const onMap = m.place && m.onMap && !m.picture, next = mapStarts.find(s => s > m.start);
+      const until = m.end !== null ? m.end : onMap ? (next !== undefined ? next : duration) : m.start + nowSeconds;
+      out.set(m.key, { win: [m.start, until], pic: m.picture, map: onMap, now: m.onWatch });
     });
     return out;
   }

@@ -49,8 +49,8 @@
   const NOW_SECONDS = Site.nowSeconds();
   const allMoments = moments.flatMap((list, ti) => {
     const plan = Site.schedule(list.map((m, i) => ({ key: i, start: m.t0, end: m.t1, picture: m.picture, place: m.id in E && E[m.id].type === 'place', onMap: m.map, onWatch: m.watch })), TAPES[ti].duration, NOW_SECONDS);
-    const toG = w => w === null ? null : [G(ti, w[0]), G(ti, w[1])];
-    return list.map((m, i) => ({ ...m, g: G(ti, m.t0), mapWin: toG(plan.get(i).map), nowWin: toG(plan.get(i).now) }));
+    const toG = w => [G(ti, w[0]), G(ti, w[1])];
+    return list.map((m, i) => { const p = plan.get(i); return { ...m, g: G(ti, m.t0), mapWin: p.map ? toG(p.win) : null, nowWin: p.now ? toG(p.win) : null }; });
   }).sort((a, b) => a.g - b.g);
   const within = (w, x) => w !== null && x >= w[0] && x < w[1];
 

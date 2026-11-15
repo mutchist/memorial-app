@@ -1153,7 +1153,7 @@
     if (routeMap) { routeMap.remove(); routeMap = null; }
     const root = el('div', 'mt'); ed.appendChild(root);
     root.appendChild(el('div', 'ed-head', '<div><div class="k">Tool</div><h1>Tape moments</h1></div>'));
-    root.appendChild(el('p', 'help', 'The tape, its subtitles, and what is tagged at each line. Click a line\'s words to tag something said there (select words first, e.g. "Jewish quarter", and they become the name). The schedule under the video shows what is on the Watch screen and when: drag the end of a bar to keep it on longer or shorter, click a bar to change it.'));
+    root.appendChild(el('p', 'help', 'The tape, its subtitles, and what is tagged at each line. Click a line\'s words to tag something said there (select words first, e.g. "Jewish quarter", and they become the name). The schedule under the video shows what is on the Watch screen and when: one row per tag. Drag a bar to move it, drag its right end to keep it on longer or shorter, click it to change where it shows.'));
     const tapes = [...S.entities.values()].filter(e => e.type === 'tape').sort((a, b) => a.attrs.number - b.attrs.number);
     if (!tapes.length) throw new Error('There are no tapes in the database');
 
@@ -1280,12 +1280,12 @@
     function tagChip(r) {
       const e = S.entities.get(r.object_id), rt = S.rtByKey[r.predicate];
       const tag = el('div', 'mt-tag' + (r.on_watch ? ' on' : ''));
-      const sw = el('input'); sw.type = 'checkbox'; sw.className = 'switch'; sw.checked = r.on_watch; sw.setAttribute('aria-label', 'Show ' + e.name + ' on the Watch page');
+      const sw = el('input'); sw.type = 'checkbox'; sw.className = 'switch'; sw.checked = r.on_watch;
       sw.onchange = async () => { try { await setWatch([r.id], sw.checked); tag.classList.toggle('on', sw.checked); draw(); } catch (err) { sw.checked = !sw.checked; fail(err); } };
       sw.setAttribute('aria-label', 'Show ' + e.name + ' in the Now ticker on the Watch page');
       const open = el('button', 'linkbtn', 'Open'); open.type = 'button'; open.onclick = ev => { ev.preventDefault(); openEntity(e.id); };
       const edit = el('button', 'linkbtn', 'On screen…'); edit.type = 'button'; edit.onclick = ev => { ev.preventDefault(); openScreenForm(r); };
-      const w = planNow.get(r.id), where = r.predicate === PICTURE_PREDICATE ? `picture until ${fmtTime(r.end_sec)}` : shownValue(e.type, r)[1].toLowerCase() + (w.map || w.now ? ` until ${fmtTime((w.map || w.now)[1])}${r.end_sec === null ? ' (default)' : ''}` : '');
+      const w = planNow.get(r.id), where = r.predicate === PICTURE_PREDICATE ? `picture until ${fmtTime(r.end_sec)}` : shownValue(e.type, r)[1].toLowerCase() + (w.map || w.now ? ` until ${fmtTime(w.win[1])}${r.end_sec === null ? ' (default)' : ''}` : '');
       const btns = el('span', 'mt-btns'); btns.append(edit, open);
       tag.append(sw, el('i', `dot t-${e.type}`), el('span', 'mt-name', `${esc(e.name)} <span class="mt-meta">${esc(S.typeByKey[e.type].label)} · ${esc(rt.label)} at ${fmtTime(r.start_sec)} · ${esc(where)}${r.note ? ' · ' + esc(r.note) : ''}</span>`), btns);
       tag.dataset.rel = r.id;
@@ -1297,7 +1297,7 @@
     const tapeDuration = () => { const d = tapeById(tapeSel.value).attrs.duration_sec; if (typeof d !== 'number') throw new Error('The tape has no duration_sec'); return d; };
     const plan = () => Site.schedule(rels.map(r => ({ key: r.id, start: +r.start_sec, end: r.end_sec === null ? null : +r.end_sec, picture: r.predicate === PICTURE_PREDICATE,
       place: S.entities.get(r.object_id).type === 'place', onMap: r.on_map, onWatch: r.on_watch })), tapeDuration(), Site.nowSeconds());
-    const SCHED_ROWS = [['pic', 'Picture'], ['map', 'Map'], ['now', 'Now']];
+    const shownOn = w => [w.pic ? 'picture' : null, w.map ? 'map' : null, w.now ? 'Now' : null].filter(Boolean).join(' · ');
     const snap = t => Math.round(t / SCHED_SNAP_SEC) * SCHED_SNAP_SEC;
     const cueAtSec = t => { let c = null; for (const x of cues) { if (+x.start_sec <= t) c = x; else break; } return c; };
     // keep the time in view: move the window when it leaves it
@@ -1334,66 +1334,71 @@
         wl.appendChild(k);
       });
       words.appendChild(wl); body.appendChild(words);
-      SCHED_ROWS.forEach(([k, label]) => {
-        const row = el('div', 'ms-row'); row.appendChild(el('span', 'ms-label', label));
-        const lanes = el('div', 'ms-lanes'), laneEnd = [];
-        rels.filter(r => planNow.get(r.id)[k] !== null).sort((a, b) => a.start_sec - b.start_sec).forEach(r => {
-          const [a, b] = planNow.get(r.id)[k];
-          if (b <= w0 || a >= w1) return;
-          let lane = laneEnd.findIndex(e => e <= a); if (lane < 0) { lane = laneEnd.length; laneEnd.push(0); } laneEnd[lane] = b;
-          const e = S.entities.get(r.object_id);
+      // one row per tag on screen in this stretch, in order: each can be moved on its own
+      const tagRows = el('div', 'ms-tags');
+      rels.filter(r => { const p = planNow.get(r.id); return (p.pic || p.map || p.now) && p.win[1] > w0 && p.win[0] < w1; })
+        .sort((a, b) => a.start_sec - b.start_sec).forEach(r => {
+          const p = planNow.get(r.id), [a, b] = p.win, e = S.entities.get(r.object_id);
+          const row = el('div', 'ms-row ms-tagrow');
+          row.appendChild(el('span', 'ms-label ms-tagname', `<i class="dot t-${e.type}"></i>${esc(e.name)}`)).title = `${e.name} (${shownOn(p)})`;
+          const lane = el('div', 'ms-lanes');
           const bar = el('div', `ms-bar t-${e.type}` + (r.end_sec === null ? ' dflt' : ''));
           const place = (from, to) => { bar.style.left = x(Math.max(from, w0)) + '%'; bar.style.width = Math.max(0, x(Math.min(to, w1)) - x(Math.max(from, w0))) + '%'; };
-          place(a, b); bar.style.top = (lane * 22) + 'px';
-          bar.title = `${e.name}: ${fmtTime(a)} to ${fmtTime(b)}${r.end_sec === null ? ' (default end)' : ''}. Drag to move it, drag its right end to change the end, click to change it.`;
-          const name = el('span', 'ms-name', esc(e.name)); bar.appendChild(name);
+          place(a, b);
+          bar.title = `${e.name}: ${fmtTime(a)} to ${fmtTime(b)}${r.end_sec === null ? ' (default end)' : ''}, ${shownOn(p)}. Drag to move it, drag its right end to change the end, click to change it.`;
+          const name = el('span', 'ms-name', esc(shownOn(p))); bar.appendChild(name);
           const end = el('span', 'ms-end'); end.title = 'Drag to change until when it is on screen';
           if (b <= w1) bar.appendChild(end);
-          // drag the bar to move the tag (start, and its own end with it), or its end to change the end; a click opens the form
+          // drag the bar to move the tag (start and end together), or its end to change the end; a click opens the form
           bar.onpointerdown = ev => {
             if (ev.button !== 0) return;
             ev.preventDefault(); bar.setPointerCapture(ev.pointerId);
-            const box = lanes.getBoundingClientRect(), x0 = ev.clientX, isEnd = ev.target === end;
-            schedDrag = { moved: false, start: +r.start_sec, until: b };
+            const box = lane.getBoundingClientRect(), x0 = ev.clientX, isEnd = ev.target === end;
+            schedDrag = { moved: false, from: a, until: b };
             const shown = t => { const c = cueAtSec(t); said.textContent = `${fmtTime(t)}${c ? ': “' + c.text + '”' : ''}`; };
             bar.onpointermove = mv => {
               const dx = mv.clientX - x0;
               if (!schedDrag.moved && Math.abs(dx) < SCHED_DRAG_PX) return;
               schedDrag.moved = true; bar.classList.add('dragging');
               const dt = snap(dx / box.width * schedWin);
-              if (isEnd) {
-                schedDrag.until = Math.min(tapeDuration(), Math.max(+r.start_sec + SCHED_SNAP_SEC, snap(b + dt)));
-                place(a, schedDrag.until); name.textContent = `${e.name} · until ${fmtTime(schedDrag.until)}`; shown(schedDrag.until);
-              } else {
-                const d = Math.min(tapeDuration() - b, Math.max(-a, dt));
-                schedDrag.start = snap(+r.start_sec + d); schedDrag.until = b + d;
-                place(a + d, b + d); name.textContent = `${e.name} · from ${fmtTime(schedDrag.start)}`; shown(schedDrag.start);
-              }
+              if (isEnd) { schedDrag.from = a; schedDrag.until = Math.min(tapeDuration(), Math.max(a + SCHED_SNAP_SEC, snap(b + dt))); }
+              else { const d = Math.min(tapeDuration() - b, Math.max(-a, dt)); schedDrag.from = snap(a + d); schedDrag.until = snap(b + d); }
+              place(schedDrag.from, schedDrag.until);
+              name.textContent = isEnd ? `until ${fmtTime(schedDrag.until)}` : `${fmtTime(schedDrag.from)} to ${fmtTime(schedDrag.until)}`;
+              shown(isEnd ? schedDrag.until : schedDrag.from);
             };
-            bar.onpointerup = async () => {
-              bar.onpointermove = bar.onpointerup = null;
+            const finish = async () => {
+              bar.onpointermove = bar.onpointerup = bar.onpointercancel = null;
               const dr = schedDrag; schedDrag = null; said.textContent = '';
-              if (!dr.moved) { if (!isEnd) openScreenForm(r); return; }
+              if (!dr.moved) { if (!isEnd) openScreenForm(r); return draw(); }
               try {
-                if (isEnd) { await setScreen(r, { end_sec: dr.until }); toast(`${e.name}: on screen until ${fmtTime(dr.until)}`); }
-                else {
-                  const d = dr.start - +r.start_sec;
-                  await setScreen(r, { start_sec: dr.start, end_sec: r.end_sec === null ? null : snap(+r.end_sec + d) });
-                  rels.sort((p, q2) => p.start_sec - q2.start_sec);
-                  toast(`${e.name}: moved to ${fmtTime(dr.start)}`);
-                }
+                await placeTag(r, dr.from, dr.until);
+                toast(isEnd ? `${e.name}: on screen until ${fmtTime(dr.until)}` : `${e.name}: ${fmtTime(dr.from)} to ${fmtTime(dr.until)}`);
               } catch (err) { fail(err); }
               draw();
             };
+            bar.onpointerup = finish; bar.onpointercancel = finish;
           };
-          lanes.appendChild(bar);
+          lane.appendChild(bar); row.appendChild(lane); tagRows.appendChild(row);
         });
-        lanes.style.height = Math.max(1, laneEnd.length) * 22 + 'px';
-        row.appendChild(lanes); body.appendChild(row);
-      });
+      if (!tagRows.children.length) tagRows.appendChild(el('p', 'help', 'Nothing is on screen in this stretch.'));
+      body.appendChild(tagRows);
       const head = el('div', 'ms-head'); head.style.left = x(schedT) + '%'; body.appendChild(head);
       sched.appendChild(body);
     }
+    // change a tag's times or where it shows; other tags whose default end would move because of it keep the end they had
+    async function editTag(r, patch) {
+      const before = plan(), was = Object.fromEntries(Object.keys(patch).map(k => [k, r[k]]));
+      Object.assign(r, patch);
+      const after = plan();
+      Object.assign(r, was);
+      const keep = rels.filter(o => o !== r && o.end_sec === null && before.get(o.id).win[1] !== after.get(o.id).win[1]);
+      await setScreen(r, patch);
+      for (const o of keep) await setScreen(o, { end_sec: before.get(o.id).win[1] });
+      rels.sort((p, q2) => p.start_sec - q2.start_sec);
+    }
+    // a dragged tag gets its own start and end
+    const placeTag = (r, from, until) => editTag(r, { start_sec: from, end_sec: until });
     async function setScreen(r, patch) {
       await q(sb.from('relations').update(patch).eq('id', r.id).select('id'));
       Object.assign(r, patch);
@@ -1408,7 +1413,7 @@
       const f = el('form', 'mt-tagform relform');
       f.appendChild(el('h4', 'mt-sub', `On screen: ${esc(e.name)} <span class="mt-meta">from ${fmtTime(r.start_sec)}</span>`));
       const box = el('div', 'grid');
-      const dflt = pic ? null : (w.map || w.now);
+      const dflt = pic || !(w.map || w.now) ? null : w.win;
       const untilF = fieldInput({ key: 'until', label: 'On screen until', input: 'text', required: pic,
         help: pic ? 'minutes:seconds' : `minutes:seconds. Empty: the default (${e.type === 'place' ? 'a place stays on the map until the next place' : `${Site.nowSeconds()} seconds`})` }, r.end_sec === null ? null : fmtTime(r.end_sec), []);
       box.appendChild(untilF);
@@ -1432,7 +1437,7 @@
           const patch = { end_sec: until };
           if (shownIn) { const c = shownChoices(e.type).find(x => x[0] === shownIn.value); patch.on_map = c[2]; patch.on_watch = c[3]; }
           ok.disabled = true;
-          await setScreen(r, patch); tagOpen = null; draw(); toast('Saved');
+          await editTag(r, patch); tagOpen = null; draw(); toast('Saved');
         } catch (err) { ok.disabled = false; fail(err); }
       };
       target.row.appendChild(f);
