@@ -162,15 +162,15 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .admin input.switch:checked::after { transform: translateX(14px); background: var(--accent); }
 
 /* tape moments: player, every line, tag form */
-.mt-player { position: sticky; top: -26px; z-index: 3; display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); grid-template-areas: "frame sched" "side sched"; gap: 6px 18px; align-items: start; background: var(--bg); padding: 10px 0 12px; margin: 6px 0 4px; border-bottom: 1px solid var(--line); }
+.mt-player { position: sticky; top: -26px; z-index: 3; display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); grid-template-areas: "frame side" "sched sched"; gap: 10px 18px; align-items: end; background: var(--bg); padding: 10px 0 12px; margin: 6px 0 4px; border-bottom: 1px solid var(--line); }
 .mt-frame { grid-area: frame; aspect-ratio: 16 / 9; background: #000; border-radius: 8px; overflow: hidden; }
 .mt-frame iframe, .mt-frame > div { width: 100%; height: 100%; display: block; border: 0; }
 .mt-plside { grid-area: side; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
 .mt-now { font: 600 16px var(--sans); color: var(--accent); font-variant-numeric: tabular-nums; }
 .mt-now:empty { display: none; }
-/* narrow screens: player above the schedule, and the panel scrolls with the page so it never covers the lines */
-@media (max-width: 1100px) { .mt-player { position: static; grid-template-columns: minmax(0, 1fr); grid-template-areas: "frame" "side" "sched"; } .mt-frame { max-width: 420px; } }
-@media (max-height: 640px) { .mt-player { position: static; } }
+/* the panel stays at the top only on tall screens; on shorter ones it scrolls with the page so it never covers the lines */
+@media (max-height: 950px) { .mt-player { position: static; } }
+@media (max-width: 700px) { .mt-player { grid-template-columns: minmax(0, 1fr); grid-template-areas: "frame" "side" "sched"; } }
 .mt .mt-bar { grid-template-columns: 200px 170px 150px minmax(0, 1fr) auto; }
 @media (max-width: 1100px) { .mt .mt-bar { grid-template-columns: 1fr 1fr; } }
 .mt-row.mt-playing { background: rgba(226,169,91,.06); box-shadow: inset 3px 0 0 var(--accent); padding-left: 10px; }
@@ -193,18 +193,18 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .mt-story .k { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
 
 /* tape moments: the schedule under the player (what is on the Watch screen and when) */
-.mt-sched { grid-area: sched; min-width: 0; }
+.mt-sched { grid-area: sched; min-width: 0; position: relative; }
 .ms-nav { display: flex; gap: 12px; align-items: baseline; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
 .ms-range { margin-right: auto; }
-.ms-body { position: relative; padding-top: 16px; margin-left: 130px; }
+.ms-body { position: relative; padding-top: 16px; margin-left: 64px; }
 .ms-tick { position: absolute; top: 0; transform: translateX(-50%); font-size: 10px; color: var(--faint); font-variant-numeric: tabular-nums; }
 .ms-row { position: relative; border-top: 1px solid var(--line); padding: 3px 0; min-height: 24px; }
-.ms-label { position: absolute; left: -130px; width: 122px; top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
-.ms-lanes { position: relative; max-height: 110px; overflow-y: auto; overflow-x: hidden; }
-.ms-bar { position: absolute; height: 18px; border-radius: 4px; opacity: .85; cursor: pointer; overflow: hidden; min-width: 4px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
+.ms-label { position: absolute; left: -64px; width: 60px; top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
+.ms-lanes { position: relative; max-height: 160px; overflow-y: auto; overflow-x: hidden; }
+.ms-bar { position: absolute; height: 16px; border-radius: 4px; opacity: .85; cursor: pointer; overflow: hidden; min-width: 4px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
 .ms-bar.dflt { opacity: .55; }
 .ms-bar:hover { opacity: 1; }
-.ms-name { display: block; font-size: 11px; line-height: 18px; padding: 0 12px 0 6px; color: #15120d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms-name { display: block; font-size: 11px; line-height: 16px; padding: 0 12px 0 6px; color: #15120d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ms-end { position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; background: rgba(0,0,0,.25); touch-action: none; }
 .ms-end:hover { background: rgba(0,0,0,.5); }
 .ms-head { position: absolute; top: 14px; bottom: 0; width: 2px; background: var(--ink); pointer-events: none; }
@@ -219,12 +219,6 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .ms-bar { touch-action: none; }
 .ms-bar.dragging { opacity: 1; outline: 1px solid var(--ink); z-index: 2; }
 
-.ms-tags { max-height: 132px; overflow-y: auto; overflow-x: hidden; margin-left: -130px; padding-left: 130px; }
-.ms-tagrow { min-height: 22px; padding: 1px 0; border-top-color: rgba(255,255,255,.04); }
-.ms-tagrow .ms-lanes { height: 20px; overflow: visible; }
-.ms-tagname { text-transform: none; letter-spacing: 0; font-size: 12px; color: #d4ccbf; top: 2px; }
-.ms-tagname .dot { margin-right: 5px; }
-.ms-bar.ms-nowbar { background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.18) 0 4px, transparent 4px 8px); }
 
 /* forms opened from the schedule: a dialog over the page */
 .mt-dialog { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.55); display: grid; place-items: start center; padding: 6vh 16px; overflow: auto; }
@@ -232,3 +226,8 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .mt-dlgpanel .mt-tagform { margin: 0; border: 0; }
 .mt-dlghead { font-family: var(--serif); font-size: 15px; color: #d4ccbf; padding: 4px 0 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
 .mt-dlghead .tc { font: 12px var(--sans); color: var(--accent); margin-right: 6px; }
+
+.ms-menu { position: absolute; z-index: 10; width: 250px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.5); padding: 6px; display: grid; gap: 2px; }
+.ms-menuhead { font-size: 11.5px; color: var(--muted); padding: 4px 6px 6px; border-bottom: 1px solid var(--line); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ms-menu button { background: none; border: 0; color: var(--ink); text-align: left; padding: 6px 8px; border-radius: 6px; font: 13px var(--sans); cursor: pointer; }
+.ms-menu button:hover { background: rgba(226,169,91,.12); }

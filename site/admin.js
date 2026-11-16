@@ -1153,7 +1153,7 @@
     if (routeMap) { routeMap.remove(); routeMap = null; }
     const root = el('div', 'mt'); ed.appendChild(root);
     root.appendChild(el('div', 'ed-head', '<div><div class="k">Tool</div><h1>Tape moments</h1></div>'));
-    root.appendChild(el('p', 'help', 'The tape, its subtitles, and what is tagged at each line. Click a line\'s words to tag something said there (select words first, e.g. "Jewish quarter", and they become the name). The schedule under the video shows what is on the Watch screen and when: one row per tag. Drag a bar to move it, drag its right end to keep it on longer or shorter, click it to change where it shows.'));
+    root.appendChild(el('p', 'help', 'The tape, its subtitles, and what is tagged at each line. Click a line\'s words to tag something said there (select words first, e.g. "Jewish quarter", and they become the name). The schedule under the video shows what is on the Watch screen and when: in the Picture, Map and Now rows every tag has its own line. Drag a bar to move it, drag its right end to keep it on longer or shorter, click it to change where it shows. Click a line in Said to play from there or add something said there.'));
     const tapes = [...S.entities.values()].filter(e => e.type === 'tape').sort((a, b) => a.attrs.number - b.attrs.number);
     if (!tapes.length) throw new Error('There are no tapes in the database');
 
@@ -1302,6 +1302,13 @@
       place: S.entities.get(r.object_id).type === 'place', onMap: r.on_map, onWatch: r.on_watch })), tapeDuration(), Site.nowSeconds());
     const shownOn = w => [w.pic ? 'picture' : null, w.map ? 'map' : null, w.now ? 'Now' : null].filter(Boolean).join(' · ');
     // the bars of a tag: its main time on screen (end_sec), and its own Now time (now_end_sec) when it also has a picture or map
+    // the schedule's rows on the left: where on the Watch screen; each tag gets its own line in a row
+    const SCHED_GROUPS = [['pic', 'Picture'], ['map', 'Map'], ['now', 'Now']];
+    const SCHED_LINE_PX = 18;
+    // a tag's bar in a row: [from, until] and the column its end is kept in
+    const barIn = (k, p) => k === 'pic' ? (p.pic ? { win: p.win, col: 'end_sec' } : null)
+      : k === 'map' ? (p.map ? { win: p.win, col: 'end_sec' } : null)
+      : p.now ? (p.nowOwn ? { win: p.nowWin, col: 'now_end_sec' } : { win: p.win, col: 'end_sec' }) : null;
     const barsOf = (r, p) => {
       if (!(p.pic || p.map || p.now)) return [];
       const main = { win: p.win, col: 'end_sec', label: p.pic ? 'picture' : p.map ? 'map' : 'Now' };
@@ -1340,72 +1347,64 @@
         const a = Math.max(+c.start_sec, w0), b = Math.min(+c.end_sec, w1);
         const k = el('button', 'ms-cue', esc(c.text)); k.type = 'button'; k.title = `${fmtTime(c.start_sec)} ${c.text}`;
         k.style.left = x(a) + '%'; k.style.width = (x(b) - x(a)) + '%'; k.title = `${fmtTime(c.start_sec)} ${c.text} (click to tag something said here)`;
-        k.onclick = () => { seek(c.start_sec); tagLine(c); };
+        k.onclick = ev => cueMenu(ev, c);
         wl.appendChild(k);
       });
       words.appendChild(wl); body.appendChild(words);
-      // one row per tag on screen in this stretch, in order: each can be moved on its own
-      const tagRows = el('div', 'ms-tags');
-      rels.filter(r => barsOf(r, planNow.get(r.id)).some(k => k.win[1] > w0 && k.win[0] < w1))
-        .sort((a, b) => a.start_sec - b.start_sec).forEach(r => {
-          const p = planNow.get(r.id), e = S.entities.get(r.object_id), bars = barsOf(r, p);
-          const row = el('div', 'ms-row ms-tagrow');
-          row.appendChild(el('span', 'ms-label ms-tagname', `<i class="dot t-${e.type}"></i>${esc(e.name)}`)).title = `${e.name} (${shownOn(p)})`;
-          const lane = el('div', 'ms-lanes'); lane.style.height = (bars.length * 20) + 'px';
-          bars.forEach((k, i) => {
-            const [a, b] = k.win;
-            const bar = el('div', `ms-bar t-${e.type}` + (r[k.col] === null ? ' dflt' : '') + (k.col === 'now_end_sec' ? ' ms-nowbar' : ''));
-            const place = (from, to) => { bar.style.left = x(Math.max(from, w0)) + '%'; bar.style.width = Math.max(0, x(Math.min(to, w1)) - x(Math.max(from, w0))) + '%'; };
-            place(a, b); bar.style.top = (i * 20) + 'px';
-            bar.title = `${e.name}, ${k.label}: ${fmtTime(a)} to ${fmtTime(b)}${r[k.col] === null ? ' (default end)' : ''}. Drag to move the tag, drag the right end to change this end, click to change it.`;
-            // the bar shows the item's name; the second bar of a tag (its Now time) says so
-            const barName = k.col === 'now_end_sec' ? `${e.name} · in Now` : e.name;
-            const name = el('span', 'ms-name', esc(barName)); bar.appendChild(name);
-            const end = el('span', 'ms-end'); end.title = 'Drag to change until when it is on screen';
-            if (b <= w1) bar.appendChild(end);
-            // drag the bar to move the whole tag (all its bars keep their length), or its end to change only this end; a click opens the form
-            bar.onpointerdown = ev => {
-              if (ev.button !== 0) return;
-              ev.preventDefault(); bar.setPointerCapture(ev.pointerId);
-              const box = lane.getBoundingClientRect(), x0 = ev.clientX, isEnd = ev.target === end;
-              schedDrag = { moved: false, d: 0, until: b };
-              const shown = t => { const c = cueAtSec(t); said.textContent = `${fmtTime(t)}${c ? ': “' + c.text + '”' : ''}`; };
-              bar.onpointermove = mv => {
-                const dx = mv.clientX - x0;
-                if (!schedDrag.moved && Math.abs(dx) < SCHED_DRAG_PX) return;
-                schedDrag.moved = true; bar.classList.add('dragging');
-                const dt = snap(dx / box.width * schedWin);
-                if (isEnd) { schedDrag.until = Math.min(tapeDuration(), Math.max(a + SCHED_SNAP_SEC, snap(b + dt))); place(a, schedDrag.until); name.textContent = `${barName} · until ${fmtTime(schedDrag.until)}`; shown(schedDrag.until); }
-                else {
-                  const latest = Math.max(...bars.map(z => z.win[1]));
-                  schedDrag.d = Math.min(tapeDuration() - latest, Math.max(-a, dt));
-                  [...lane.children].forEach((n, j) => { const [p0, p1] = bars[j].win; n.style.left = x(Math.max(p0 + schedDrag.d, w0)) + '%'; n.style.width = Math.max(0, x(Math.min(p1 + schedDrag.d, w1)) - x(Math.max(p0 + schedDrag.d, w0))) + '%'; });
-                  name.textContent = `${barName} · from ${fmtTime(a + schedDrag.d)}`; shown(a + schedDrag.d);
-                }
-              };
-              const finish = async () => {
-                bar.onpointermove = bar.onpointerup = bar.onpointercancel = null;
-                const dr = schedDrag; schedDrag = null; said.textContent = '';
-                if (!dr.moved) { bar.classList.remove('dragging'); if (!isEnd) openScreenForm(r, true); return; }
-                try {
-                  if (isEnd) { await editTag(r, { [k.col]: dr.until }); toast(`${e.name}, ${k.label}: until ${fmtTime(dr.until)}`); }
-                  else {
-                    // moving keeps every bar's length: its ends are set where they are now, moved along
-                    const patch = { start_sec: snap(+r.start_sec + dr.d) };
-                    bars.forEach(z => patch[z.col] = snap(z.win[1] + dr.d));
-                    await editTag(r, patch); toast(`${e.name}: moved to ${fmtTime(patch.start_sec)}`);
-                  }
-                } catch (err) { fail(err); }
-                draw();
-              };
-              bar.onpointerup = finish; bar.onpointercancel = finish;
+      // Picture / Map / Now: every tag on its own line in the row, so each bar is moved on its own
+      SCHED_GROUPS.forEach(([k, label]) => {
+        const row = el('div', 'ms-row'); row.appendChild(el('span', 'ms-label', label));
+        const lane = el('div', 'ms-lanes');
+        const inView = rels.map(r => ({ r, bar: barIn(k, planNow.get(r.id)) })).filter(z => z.bar !== null && z.bar.win[1] > w0 && z.bar.win[0] < w1)
+          .sort((p1, p2) => p1.r.start_sec - p2.r.start_sec);
+        lane.style.height = Math.max(1, inView.length) * SCHED_LINE_PX + 'px';
+        inView.forEach(({ r, bar: k2 }, i) => {
+          const p = planNow.get(r.id), e = S.entities.get(r.object_id), [a, b] = k2.win;
+          const bar = el('div', `ms-bar t-${e.type}` + (r[k2.col] === null ? ' dflt' : ''));
+          const place = (from, to) => { bar.style.left = x(Math.max(from, w0)) + '%'; bar.style.width = Math.max(0, x(Math.min(to, w1)) - x(Math.max(from, w0))) + '%'; };
+          place(a, b); bar.style.top = (i * SCHED_LINE_PX) + 'px';
+          bar.title = `${e.name} (${label}): ${fmtTime(a)} to ${fmtTime(b)}${r[k2.col] === null ? ' (default end)' : ''}. Drag to move it, drag the right end to change the end, click to change it.`;
+          const name = el('span', 'ms-name', esc(e.name)); bar.appendChild(name);
+          const end = el('span', 'ms-end'); end.title = 'Drag to change until when it is on screen';
+          if (b <= w1) bar.appendChild(end);
+          // drag the bar to move the tag (all its bars keep their length), or its end to change only this end; a click opens its form
+          bar.onpointerdown = ev => {
+            if (ev.button !== 0) return;
+            ev.preventDefault(); bar.setPointerCapture(ev.pointerId);
+            const box = lane.getBoundingClientRect(), x0 = ev.clientX, isEnd = ev.target === end, all = barsOf(r, p);
+            schedDrag = { moved: false, d: 0, until: b };
+            const shown = t => { const c = cueAtSec(t); said.textContent = `${fmtTime(t)}${c ? ': “' + c.text + '”' : ''}`; };
+            bar.onpointermove = mv => {
+              const dx = mv.clientX - x0;
+              if (!schedDrag.moved && Math.abs(dx) < SCHED_DRAG_PX) return;
+              schedDrag.moved = true; bar.classList.add('dragging');
+              const dt = snap(dx / box.width * schedWin);
+              if (isEnd) { schedDrag.until = Math.min(tapeDuration(), Math.max(a + SCHED_SNAP_SEC, snap(b + dt))); place(a, schedDrag.until); name.textContent = `${e.name} · until ${fmtTime(schedDrag.until)}`; shown(schedDrag.until); }
+              else {
+                schedDrag.d = Math.min(tapeDuration() - Math.max(...all.map(z => z.win[1])), Math.max(-a, dt));
+                place(a + schedDrag.d, b + schedDrag.d); name.textContent = `${e.name} · from ${fmtTime(a + schedDrag.d)}`; shown(a + schedDrag.d);
+              }
             };
-            lane.appendChild(bar);
-          });
-          row.appendChild(lane); tagRows.appendChild(row);
+            const finish = async () => {
+              bar.onpointermove = bar.onpointerup = bar.onpointercancel = null;
+              const dr = schedDrag; schedDrag = null; said.textContent = '';
+              if (!dr.moved) { bar.classList.remove('dragging'); if (!isEnd) openScreenForm(r, true); return; }
+              try {
+                if (isEnd) { await editTag(r, { [k2.col]: dr.until }); toast(`${e.name} (${label}): until ${fmtTime(dr.until)}`); }
+                else {
+                  const patch = { start_sec: snap(+r.start_sec + dr.d) };
+                  all.forEach(z => patch[z.col] = snap(z.win[1] + dr.d));
+                  await editTag(r, patch); toast(`${e.name}: moved to ${fmtTime(patch.start_sec)}`);
+                }
+              } catch (err) { fail(err); }
+              draw();
+            };
+            bar.onpointerup = finish; bar.onpointercancel = finish;
+          };
+          lane.appendChild(bar);
         });
-      if (!tagRows.children.length) tagRows.appendChild(el('p', 'help', 'Nothing is on screen in this stretch.'));
-      body.appendChild(tagRows);
+        row.appendChild(lane); body.appendChild(row);
+      });
       const head = el('div', 'ms-head'); head.style.left = x(schedT) + '%'; body.appendChild(head);
       sched.appendChild(body);
     }
@@ -1440,6 +1439,19 @@
       d.onclick = ev => { if (ev.target === d) closeForms(); };
       d.onkeydown = ev => { if (ev.key === 'Escape') closeForms(); };
       return panel;
+    }
+    // click a line in the schedule's Said row: a small menu to play from there or add something said there
+    function cueMenu(ev, c) {
+      document.querySelectorAll('.ms-menu').forEach(n => n.remove());
+      const m = el('div', 'ms-menu');
+      m.appendChild(el('div', 'ms-menuhead', `${fmtTime(c.start_sec)} ${esc(c.text)}`));
+      const play = el('button', null, '▶ Play from here'); play.type = 'button'; play.onclick = () => { m.remove(); seek(c.start_sec); };
+      const add = el('button', null, '+ Add data here'); add.type = 'button'; add.onclick = () => { m.remove(); tagLine(c); };
+      m.append(play, add);
+      const box = sched.getBoundingClientRect();
+      m.style.left = Math.min(ev.clientX - box.left, box.width - 260) + 'px'; m.style.top = (ev.clientY - box.top + 8) + 'px';
+      sched.appendChild(m);
+      setTimeout(() => document.addEventListener('pointerdown', function off(e2) { if (!m.contains(e2.target)) { m.remove(); document.removeEventListener('pointerdown', off); } }), 0);
     }
     // scroll the list so a line shows just under the sticky player
     const reveal = row => {
