@@ -162,13 +162,15 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .admin input.switch:checked::after { transform: translateX(14px); background: var(--accent); }
 
 /* tape moments: player, every line, tag form */
-.mt-player { position: sticky; top: -26px; z-index: 3; display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 16px; align-items: end; background: var(--bg); padding: 10px 0 12px; margin: 6px 0 4px; border-bottom: 1px solid var(--line); }
-.mt-frame { aspect-ratio: 16 / 9; background: #000; border-radius: 8px; overflow: hidden; }
+.mt-player { position: sticky; top: -26px; z-index: 3; display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); grid-template-areas: "frame sched" "side sched"; gap: 6px 18px; align-items: start; background: var(--bg); padding: 10px 0 12px; margin: 6px 0 4px; border-bottom: 1px solid var(--line); }
+.mt-frame { grid-area: frame; aspect-ratio: 16 / 9; background: #000; border-radius: 8px; overflow: hidden; }
 .mt-frame iframe, .mt-frame > div { width: 100%; height: 100%; display: block; border: 0; }
-.mt-plside { display: grid; gap: 8px; align-content: end; }
-.mt-now { font: 600 20px var(--sans); color: var(--accent); font-variant-numeric: tabular-nums; }
+.mt-plside { grid-area: side; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.mt-now { font: 600 16px var(--sans); color: var(--accent); font-variant-numeric: tabular-nums; }
 .mt-now:empty { display: none; }
-@media (max-width: 900px) { .mt-player { grid-template-columns: 1fr; } }
+/* narrow screens: player above the schedule, and the panel scrolls with the page so it never covers the lines */
+@media (max-width: 1100px) { .mt-player { position: static; grid-template-columns: minmax(0, 1fr); grid-template-areas: "frame" "side" "sched"; } .mt-frame { max-width: 420px; } }
+@media (max-height: 640px) { .mt-player { position: static; } }
 .mt .mt-bar { grid-template-columns: 200px 170px 150px minmax(0, 1fr) auto; }
 @media (max-width: 1100px) { .mt .mt-bar { grid-template-columns: 1fr 1fr; } }
 .mt-row.mt-playing { background: rgba(226,169,91,.06); box-shadow: inset 3px 0 0 var(--accent); padding-left: 10px; }
@@ -191,13 +193,13 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .mt-story .k { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
 
 /* tape moments: the schedule under the player (what is on the Watch screen and when) */
-.mt-sched { grid-column: 1 / -1; }
+.mt-sched { grid-area: sched; min-width: 0; }
 .ms-nav { display: flex; gap: 12px; align-items: baseline; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
 .ms-range { margin-right: auto; }
-.ms-body { position: relative; padding-top: 16px; margin-left: 170px; }
+.ms-body { position: relative; padding-top: 16px; margin-left: 130px; }
 .ms-tick { position: absolute; top: 0; transform: translateX(-50%); font-size: 10px; color: var(--faint); font-variant-numeric: tabular-nums; }
 .ms-row { position: relative; border-top: 1px solid var(--line); padding: 3px 0; min-height: 24px; }
-.ms-label { position: absolute; left: -170px; width: 160px; top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
+.ms-label { position: absolute; left: -130px; width: 122px; top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 4px; }
 .ms-lanes { position: relative; max-height: 110px; overflow-y: auto; overflow-x: hidden; }
 .ms-bar { position: absolute; height: 18px; border-radius: 4px; opacity: .85; cursor: pointer; overflow: hidden; min-width: 4px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
 .ms-bar.dflt { opacity: .55; }
@@ -217,9 +219,16 @@ body.admin > .signin, body.admin > .notice { overflow-y: auto; }
 .ms-bar { touch-action: none; }
 .ms-bar.dragging { opacity: 1; outline: 1px solid var(--ink); z-index: 2; }
 
-.ms-tags { max-height: 190px; overflow-y: auto; overflow-x: hidden; margin-left: -170px; padding-left: 170px; }
+.ms-tags { max-height: 132px; overflow-y: auto; overflow-x: hidden; margin-left: -130px; padding-left: 130px; }
 .ms-tagrow { min-height: 22px; padding: 1px 0; border-top-color: rgba(255,255,255,.04); }
 .ms-tagrow .ms-lanes { height: 20px; overflow: visible; }
 .ms-tagname { text-transform: none; letter-spacing: 0; font-size: 12px; color: #d4ccbf; top: 2px; }
 .ms-tagname .dot { margin-right: 5px; }
 .ms-bar.ms-nowbar { background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.18) 0 4px, transparent 4px 8px); }
+
+/* forms opened from the schedule: a dialog over the page */
+.mt-dialog { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.55); display: grid; place-items: start center; padding: 6vh 16px; overflow: auto; }
+.mt-dlgpanel { width: min(900px, 100%); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.mt-dlgpanel .mt-tagform { margin: 0; border: 0; }
+.mt-dlghead { font-family: var(--serif); font-size: 15px; color: #d4ccbf; padding: 4px 0 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.mt-dlghead .tc { font: 12px var(--sans); color: var(--accent); margin-right: 6px; }

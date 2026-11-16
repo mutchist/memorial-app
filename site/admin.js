@@ -1241,7 +1241,7 @@
         b.onclick = async () => { try { if (!confirm(`${label}: ${shownTags.length} moment(s)?`)) return; await setWatch(shownTags.map(r => r.id), on); toast('Saved'); draw(); } catch (err) { fail(err); } };
         counts.appendChild(b); };
       bulk('Switch on all shown', true); bulk('Switch off all shown', false);
-      list.innerHTML = ''; rows = []; tagOpen = null;
+      list.innerHTML = ''; rows = []; closeForms();
       if (!cues.length) list.appendChild(el('p', 'help', 'This tape has no subtitles in the database.'));
       else if (!lines.length) list.appendChild(el('p', 'help', rels.length || all ? 'Nothing matches the filters.' : 'Nothing is tagged on this tape yet.'));
       lines.forEach(c => {
@@ -1386,7 +1386,7 @@
               const finish = async () => {
                 bar.onpointermove = bar.onpointerup = bar.onpointercancel = null;
                 const dr = schedDrag; schedDrag = null; said.textContent = '';
-                if (!dr.moved) { bar.classList.remove('dragging'); if (!isEnd) openScreenForm(r); return; }
+                if (!dr.moved) { bar.classList.remove('dragging'); if (!isEnd) openScreenForm(r, true); return; }
                 try {
                   if (isEnd) { await editTag(r, { [k.col]: dr.until }); toast(`${e.name}, ${k.label}: until ${fmtTime(dr.until)}`); }
                   else {
@@ -1429,6 +1429,18 @@
       await q(sb.from('relations').update(patch).eq('id', r.id).select('id'));
       Object.assign(r, patch);
     }
+    // forms opened from the schedule show in a dialog over the page (under a line they could be hidden by the tall player);
+    // forms opened from the list open under their line
+    function closeForms() { list.querySelectorAll('.mt-tagform').forEach(n => n.remove()); document.querySelectorAll('.mt-dialog').forEach(n => n.remove()); tagOpen = null; }
+    function formHost(row, inDialog) {
+      closeForms();
+      if (!inDialog) return row;
+      const d = el('div', 'mt-dialog'), panel = el('div', 'mt-dlgpanel');
+      d.appendChild(panel); document.body.appendChild(d);
+      d.onclick = ev => { if (ev.target === d) closeForms(); };
+      d.onkeydown = ev => { if (ev.key === 'Escape') closeForms(); };
+      return panel;
+    }
     // scroll the list so a line shows just under the sticky player
     const reveal = row => {
       const top = row.getBoundingClientRect().top - ed.getBoundingClientRect().top + ed.scrollTop;
@@ -1439,15 +1451,14 @@
       let target = rows.find(x => x.c === c);
       if (target === undefined) { modeSel.value = 'all'; find.value = ''; typeSel.value = ''; onlyOn.querySelector('input').checked = false; draw(); target = rows.find(x => x.c === c); }
       if (target === undefined) return toast('That subtitle line is not in the list', true);
-      openTagForm(target.row, c, '');
-      reveal(target.row);
+      openTagForm(target.row, c, '', undefined, true);
     }
     // change where and until when a tag is on screen; opens under its line
-    function openScreenForm(r) {
+    function openScreenForm(r, inDialog) {
       let target = rows.find(x => x.row.querySelector(`[data-rel="${r.id}"]`));
       if (target === undefined) { modeSel.value = 'all'; find.value = ''; typeSel.value = ''; onlyOn.querySelector('input').checked = false; draw(); target = rows.find(x => x.row.querySelector(`[data-rel="${r.id}"]`)); }
       if (target === undefined) return toast('That tag is not on a subtitle line', true);
-      list.querySelectorAll('.mt-tagform').forEach(n => n.remove());
+      const host = formHost(target.row, inDialog);
       const e = S.entities.get(r.object_id), pic = r.predicate === PICTURE_PREDICATE, w = planNow.get(r.id);
       const f = el('form', 'mt-tagform relform');
       f.appendChild(el('h4', 'mt-sub', `On screen: ${esc(e.name)} <span class="mt-meta">from ${fmtTime(r.start_sec)}</span>`));
@@ -1469,7 +1480,7 @@
       if (dflt && r.end_sec === null) f.appendChild(el('p', 'help', `Now it is on screen until ${fmtTime(dflt[1])} (the default).`));
       const ra = el('div', 'row-actions');
       const ok = el('button', 'primary', 'Save'); ok.type = 'submit';
-      const cancel = el('button', 'ghost', 'Cancel'); cancel.type = 'button'; cancel.onclick = () => { f.remove(); tagOpen = null; };
+      const cancel = el('button', 'ghost', 'Cancel'); cancel.type = 'button'; cancel.onclick = closeForms;
       ra.append(ok, cancel); f.appendChild(ra);
       f.onsubmit = async ev => {
         ev.preventDefault();
@@ -1485,22 +1496,22 @@
           }
           if (shownIn) { const c = shownChoices(e.type).find(x => x[0] === shownIn.value); patch.on_map = c[2]; patch.on_watch = c[3]; }
           ok.disabled = true;
-          await editTag(r, patch); tagOpen = null; draw(); toast('Saved');
+          await editTag(r, patch); closeForms(); draw(); toast('Saved');
         } catch (err) { ok.disabled = false; fail(err); }
       };
-      target.row.appendChild(f);
+      host.appendChild(f);
       tagOpen = { cue: target.c, api: { setName: () => {} } };
-      reveal(target.row);
+      if (!inDialog) reveal(target.row);
       untilF.querySelector('input').focus();
     }
 
     // ----- the tag form under a line: a new item, an existing item, or a picture to show on screen -----
-    function openTagForm(row, c, picked, startMode) {
-      list.querySelectorAll('.mt-tagform').forEach(n => n.remove());
+    function openTagForm(row, c, picked, startMode, inDialog) {
+      const host = formHost(row, inDialog);
       const tape = tapeById(tapeSel.value);
       const f = el('form', 'mt-tagform relform');
       const st = { mode: 'new', other: null, shows: null };
-      const close = () => { f.remove(); tagOpen = null; };
+      const close = closeForms;
       const lineTags = byLineNow.has(c) ? byLineNow.get(c) : [];
       const notTape = S.types.filter(t => t.key !== 'tape').map(t => t.key);
 
@@ -1709,7 +1720,8 @@
           fail(done.length ? new Error(`${err.message} (Already done: ${done.join(', ')}.)`) : err);
         }
       };
-      row.appendChild(f);
+      if (inDialog) f.prepend(el('div', 'mt-dlghead', `<span class="tc">${fmtTime(c.start_sec)}</span> ${esc(c.text)}`));
+      host.appendChild(f);
       setMode(startMode === undefined ? 'new' : startMode); suggestNew(); suggestShows();
       suggestButtons(oldSugg, similar(picked, notTape), 'Tagged on this line or similar:', pickOld);
       tagOpen = { cue: c, api: { setName: s => { [nameIn, picName].forEach(n => { n.value = s; n.dispatchEvent(new Event('input')); }); } } };
