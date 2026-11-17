@@ -1123,7 +1123,8 @@
   const PICTURE_MIN_SEC = 8;                                         // preset: a picture stays up at least this long
   const DEPICTS = 'depicts';                                         // photo -> what it shows
   const PLAYER_TICK_MS = 400;                                        // how often the current line is checked
-  const SCHED_ZOOMS = [[60, '1 min'], [240, '4 min'], [600, '10 min']];   // how much of the tape the schedule shows; the second is the start
+  const SCHED_SPANS = [20, 40, 60, 120, 240, 480, 900, 1800];        // how much of the tape the schedule can show (seconds), zoomed in to out
+  const SCHED_START_SPAN = 240;                                      // ... when it opens
   const SCHED_LEAD = 0.25;                                           // ... starting this share of it before the video time
   const SCHED_SNAP_SEC = 0.5;                                        // dragged times are rounded to this
   const SCHED_DRAG_PX = 4;                                           // a bar moved less than this is a click
@@ -1153,7 +1154,7 @@
     if (routeMap) { routeMap.remove(); routeMap = null; }
     const root = el('div', 'mt'); ed.appendChild(root);
     root.appendChild(el('div', 'ed-head', '<div><div class="k">Tool</div><h1>Tape moments</h1></div>'));
-    root.appendChild(el('p', 'help', 'The tape, its subtitles, and what is tagged at each line. Click a line\'s words to tag something said there (select words first, e.g. "Jewish quarter", and they become the name). The schedule under the video shows what is on the Watch screen and when: in the Picture, Map and Now rows every tag has its own line. Drag a bar to move it, drag its right end to keep it on longer or shorter, click it to change where it shows. Click a line in Said to play from there or add something said there.'));
+    root.appendChild(el('p', 'help', 'The schedule under the video shows what is on the Watch screen and when. Click a line in Said to play from there or add something said there. In the Picture, Map and Now rows every tag has its own line: drag a bar to move it, drag its right end to keep it on longer or shorter, click it to change where it shows. Zoom with − and + (or Ctrl + mouse wheel). The full list of lines and tags is under the schedule.'));
     const tapes = [...S.entities.values()].filter(e => e.type === 'tape').sort((a, b) => a.attrs.number - b.attrs.number);
     if (!tapes.length) throw new Error('There are no tapes in the database');
 
@@ -1161,9 +1162,8 @@
     const pl = el('div', 'mt-player');
     const frame = el('div', 'mt-frame'); const slot = el('div'); frame.appendChild(slot);
     const plNote = el('div', 'help mt-plnote');
-    const follow = el('label', 'selall', '<input type="checkbox" checked> Follow the video');
     const now = el('span', 'mt-now');
-    const plSide = el('div', 'mt-plside'); plSide.append(now, follow, plNote);
+    const plSide = el('div', 'mt-plside'); plSide.append(now, plNote);
     const sched = el('div', 'mt-sched');
     pl.append(frame, plSide, sched); root.appendChild(pl);
     const P = { yt: null, ready: false, tapeId: null };
@@ -1194,9 +1194,14 @@
     S.types.forEach(t => { const o = el('option', null, esc(t.label)); o.value = t.key; typeSel.appendChild(o); });
     const find = el('input'); find.type = 'search'; find.placeholder = 'Search words or names…';
     const onlyOn = el('label', 'selall', '<input type="checkbox"> Only switched on');
-    bar.append(tapeSel, modeSel, typeSel, find, onlyOn); root.appendChild(bar);
-    const counts = el('div', 'mt-counts'); root.appendChild(counts);
-    const list = el('div', 'mt-list'); root.appendChild(list);
+    bar.append(tapeSel, modeSel, typeSel, find, onlyOn);
+    // the schedule is the main tool; the list of every line and its tags is there to search, and folded away until asked for
+    const listWrap = el('div', 'mt-listwrap'); listWrap.hidden = true;
+    const listBtn = el('button', 'ghost mt-listbtn', 'Show the list of lines and tags'); listBtn.type = 'button';
+    listBtn.onclick = () => { listWrap.hidden = !listWrap.hidden; listBtn.textContent = listWrap.hidden ? 'Show the list of lines and tags' : 'Hide the list of lines and tags'; };
+    root.append(listBtn, listWrap); listWrap.appendChild(bar);
+    const counts = el('div', 'mt-counts'); listWrap.appendChild(counts);
+    const list = el('div', 'mt-list'); listWrap.appendChild(list);
     const REL_COLS = 'id,predicate,object_id,start_sec,end_sec,now_end_sec,note,on_watch,on_map';
     let cues = [], rels = [], storyDates = [], rows = [], tagOpen = null, byLineNow = new Map(), dateAtNow = new Map();   // tagOpen: { cue, form api } of the open tag form
     const load = async () => {
@@ -1296,7 +1301,7 @@
     }
 
     // ----- the schedule: what is on the Watch screen and when (Site.schedule, the same rules as the Watch page) -----
-    let planNow = new Map(), schedStart = 0, schedT = 0, schedDrag = null, schedWin = SCHED_ZOOMS[1][0];
+    let planNow = new Map(), schedStart = 0, schedT = 0, schedDrag = null, schedWin = SCHED_START_SPAN;
     const tapeDuration = () => { const d = tapeById(tapeSel.value).attrs.duration_sec; if (typeof d !== 'number') throw new Error('The tape has no duration_sec'); return d; };
     const plan = () => Site.schedule(rels.map(r => ({ key: r.id, start: +r.start_sec, end: r.end_sec === null ? null : +r.end_sec, nowEnd: r.now_end_sec === null ? null : +r.now_end_sec, picture: r.predicate === PICTURE_PREDICATE,
       place: S.entities.get(r.object_id).type === 'place', onMap: r.on_map, onWatch: r.on_watch })), tapeDuration(), Site.nowSeconds());
@@ -1323,6 +1328,14 @@
       const head = sched.querySelector('.ms-head');
       if (head) head.style.left = ((t - schedStart) / schedWin * 100) + '%';
     }
+    function zoomSched(step) {
+      const i = Math.min(SCHED_SPANS.length - 1, Math.max(0, SCHED_SPANS.indexOf(schedWin) + step));
+      if (SCHED_SPANS[i] === schedWin) return;
+      // keep the video time at the same place on screen
+      const f = Math.min(1, Math.max(0, (schedT - schedStart) / schedWin));
+      schedWin = SCHED_SPANS[i]; schedStart = Math.max(0, schedT - f * schedWin); drawSched();
+    }
+    sched.addEventListener('wheel', ev => { if (!ev.ctrlKey) return; ev.preventDefault(); zoomSched(ev.deltaY > 0 ? 1 : -1); }, { passive: false });
     function drawSched() {
       if (schedDrag !== null) return;
       planNow = plan();
@@ -1331,9 +1344,12 @@
       const nav = el('div', 'ms-nav');
       const back = el('button', 'linkbtn', '‹ Earlier'); back.type = 'button'; back.onclick = () => { schedStart = Math.max(0, schedStart - schedWin / 2); drawSched(); };
       const fwd = el('button', 'linkbtn', 'Later ›'); fwd.type = 'button'; fwd.onclick = () => { schedStart += schedWin / 2; drawSched(); };
+      // zoom out / in (also Ctrl + mouse wheel over the schedule)
       const zoom = el('span', 'ms-zoom');
-      SCHED_ZOOMS.forEach(([sec, label]) => { const z = el('button', 'linkbtn' + (sec === schedWin ? ' on' : ''), label); z.type = 'button';
-        z.onclick = () => { schedWin = sec; schedStart = Math.max(0, schedT - schedWin * SCHED_LEAD); drawSched(); }; zoom.appendChild(z); });
+      const zi = SCHED_SPANS.indexOf(schedWin);
+      const out = el('button', 'ghost', '−'); out.type = 'button'; out.title = 'Zoom out'; out.disabled = zi === SCHED_SPANS.length - 1; out.onclick = () => zoomSched(1);
+      const inn = el('button', 'ghost', '+'); inn.type = 'button'; inn.title = 'Zoom in'; inn.disabled = zi === 0; inn.onclick = () => zoomSched(-1);
+      zoom.append(out, el('span', 'ms-span', schedWin < 60 ? `${schedWin} s` : `${schedWin / 60} min`), inn);
       const said = el('span', 'ms-said');   // while dragging: the words said at that time
       nav.append(el('span', 'ms-range', `On screen, ${fmtTime(w0)} to ${fmtTime(w1)}`), zoom, back, fwd);
       sched.append(nav, said);
@@ -1351,6 +1367,16 @@
         wl.appendChild(k);
       });
       words.appendChild(wl); body.appendChild(words);
+      // story dates: where in Jonas's life the tape is from here on; click to change
+      const dates = el('div', 'ms-row'); dates.appendChild(el('span', 'ms-label', 'Date'));
+      const dl = el('div', 'ms-lanes ms-dates');
+      storyDates.filter(d => +d.start_sec >= w0 && +d.start_sec < w1).forEach(d => {
+        const f = el('button', 'ms-date', esc(d.date_text)); f.type = 'button'; f.style.left = x(+d.start_sec) + '%';
+        f.title = `Story date from ${fmtTime(d.start_sec)}: ${d.date_text}. Click to change it.`;
+        f.onclick = () => { const c = cueAtSec(+d.start_sec + 0.05); if (c) tagLine(c, 'date'); };
+        dl.appendChild(f);
+      });
+      dates.appendChild(dl); body.appendChild(dates);
       // Picture / Map / Now: every tag on its own line in the row, so each bar is moved on its own
       SCHED_GROUPS.forEach(([k, label]) => {
         const row = el('div', 'ms-row'); row.appendChild(el('span', 'ms-label', label));
@@ -1459,11 +1485,11 @@
       ed.scrollTo({ top: top - pl.offsetHeight - 10, behavior: 'smooth' });
     };
     // open the tag form under a subtitle line (from the schedule's "Said" row); clears the filters if the line is hidden
-    function tagLine(c) {
+    function tagLine(c, mode) {
       let target = rows.find(x => x.c === c);
       if (target === undefined) { modeSel.value = 'all'; find.value = ''; typeSel.value = ''; onlyOn.querySelector('input').checked = false; draw(); target = rows.find(x => x.c === c); }
       if (target === undefined) return toast('That subtitle line is not in the list', true);
-      openTagForm(target.row, c, '', undefined, true);
+      openTagForm(target.row, c, '', mode, true);
     }
     // change where and until when a tag is on screen; opens under its line
     function openScreenForm(r, inDialog) {
@@ -1740,7 +1766,7 @@
       if (st.mode === 'new') (picked === '' ? nameIn : typeIn).focus();
     }
 
-    // follow the video: highlight the line being said, scroll to it
+    // follow the video: move the schedule along, highlight the line being said in the list
     const tick = setInterval(() => {
       if (!root.isConnected) { clearInterval(tick); if (P.yt) P.yt.destroy(); return; }
       if (!P.ready) return;
@@ -1749,11 +1775,6 @@
       if (t !== schedT) schedAt(t);
       let cur = null; for (const x of rows) { if (+x.c.start_sec <= t) cur = x; else break; }
       rows.forEach(x => x.row.classList.toggle('mt-playing', x === cur && t < +x.c.end_sec + 2));
-      const playing = P.yt.getPlayerState() === 1;
-      if (cur && playing && follow.querySelector('input').checked && !tagOpen) {
-        const top = cur.row.getBoundingClientRect().top - ed.getBoundingClientRect().top + ed.scrollTop, h = ed.clientHeight;
-        if (top < ed.scrollTop + pl.offsetHeight || top > ed.scrollTop + h - 80) ed.scrollTo({ top: top - pl.offsetHeight - 40, behavior: 'smooth' });
-      }
     }, PLAYER_TICK_MS);
 
     tapeSel.onchange = () => { showPlayerFor(tapeById(tapeSel.value)); load().catch(fail); };
